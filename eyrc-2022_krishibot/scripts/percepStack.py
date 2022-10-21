@@ -54,7 +54,7 @@ def image_processing(image):
     1. Convert the image format, to see you can use cv2.imshow() 
     2. Use moments to find centroid of the image.
     3. Set the x and y value for return as the centroid value of the detected fruit
-       and append in the pose variable by doing `pose.append(x, y)`.
+       and append in the pose variable by doing `pose.append([x, y])`.
     4. If multiple fuits found then do append multiple times.
     '''
     pose = []
