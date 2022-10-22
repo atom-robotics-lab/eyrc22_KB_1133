@@ -15,7 +15,7 @@
   <!-- Executing Exe file -->
   <node pkg="eyrc-2022_krishibot" type="task2bEx" name="exeFileT0" output="screen" />
 
-  <include file="$(find ur5_moveit)/launch/ur5_bringup_moveit.launch"/> 
+  <!-- <include file="$(find ur5_moveit)/launch/ur5_bringup_moveit.launch"/> -->
   <node name="perception_script" pkg="eyrc-2022_krishibot" type="percepStack.py" output="screen"/>
 </launch>
           
