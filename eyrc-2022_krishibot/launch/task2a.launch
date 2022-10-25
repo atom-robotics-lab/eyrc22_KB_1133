@@ -45,9 +45,7 @@
   <node pkg="eyrc-2022_krishibot" type="task2aEx" name="exeFileT0" output="screen" />
 
   <include file="$(find ur5_moveit)/launch/ur5_bringup_moveit.launch"/> 
-  <node name="picknplace" pkg="eyrc-2022_krishibot" type="maniStack.py" output="screen"/>
-</launch>
-          
+  <node name="picknplace" pkg="eyrc-2022_krishibot" type="maniStack.py" output="screen"/>         
 
 </launch>
 <!-- ======================================================================================= -->
