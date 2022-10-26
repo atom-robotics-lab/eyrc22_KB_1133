@@ -10,7 +10,7 @@
 *
 *  Filename:			agri_bot.xacro
 *  Created:				02/10/2020
-*  Last Modified:	07/09/2022
+*  Last Modified:	19/10/2022
 *  Modified by:   Amit
 *  Author:				Saail, e-Yantra Team
 *  This is an urdf for agri_bot with base robot as ebot
@@ -38,22 +38,20 @@
         <mesh
           filename="package://eyrc-2022_krishibot/meshes/basket.dae" scale="1 1 1" />
       </geometry>
-
     </visual>
-
     <collision>
       <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
+        xyz="0.34 0 0.47"
+        rpy="-1.57 0 0" />
       <geometry>
         <mesh
-          filename="package://eyrc-2022_krishibot/meshes/basket.dae" scale="1 1 1" />
+          filename="package://eyrc-2022_krishibot/meshes/basket_collision.stl" scale="1 1 1" />
       </geometry>
     </collision>
+
   </link>
 
-
-    <joint
+<joint
     name="ebot_basket"
     type="fixed">
     <origin
@@ -63,9 +61,117 @@
       link="ebot_base" />
     <child
       link="basket" />
+</joint>  
 
-  </joint> 
+<!-- <link
+    name="basket_collision_wall_1">
 
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <box 
+          size="0.5 0.05 0.2"/>
+      </geometry>
+    </collision>
+</link>
+
+<joint
+    name="ebot_base_basket_collision_wall_1"
+    type="fixed">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="basket" />
+    <child
+      link="basket_collision_wall_1" />
+</joint>  -->
+
+
+<!-- <link
+    name="basket_collision_wall_2">
+
+    <collision>
+      <origin
+        xyz="0.005764 0.326012 0.01976"
+        rpy="0 0 0" />
+      <geometry>
+        <box 
+          size="0.5 0.05 0.2"/>
+      </geometry>
+    </collision>
+</link>
+
+<joint
+    name="ebot_base_basket_collision_wall_2"
+    type="fixed">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="ebot_base" />
+    <child
+      link="basket_collision_wall_2" />
+</joint>  -->
+
+<!-- 
+<link
+    name="basket_collision_wall_3">
+
+    <collision>
+      <origin
+        xyz="-0.000621 -0.005586 0.01976"
+        rpy="0 0 0" />
+      <geometry>
+        <box 
+          size="0.5 0.05 0.2"/>
+      </geometry>
+    </collision>
+</link>
+
+<link
+    name="basket_collision_wall_4">
+
+    <collision>
+      <origin
+        xyz="0.214781 0.000986 0.01976"
+        rpy="0 0 -1.60191" />
+      <geometry>
+        <box 
+          size="0.7 0.05 0.2"/>
+      </geometry>
+    </collision>
+</link>
+
+<link
+    name="basket_collision_wall_5">
+
+    <collision>
+      <origin
+        xyz="-0.210139 0.001041 0.01976"
+        rpy="0 0 -1.60191" />
+      <geometry>
+        <box 
+          size="0.7 0.05 0.2"/>
+      </geometry>
+    </collision>
+</link>
+
+<link
+    name="basket_collision_wall_6">
+
+    <collision>
+      <origin
+        xyz="-0.005602 0.000438 -0.0988"
+        rpy="1.57099 0 -1.60191" />
+      <geometry>
+        <box 
+          size="0.7 0.05 0.5"/>
+      </geometry>
+    </collision>
+</link> -->
 
   <!-- tomato gripper 1-->
 <link
