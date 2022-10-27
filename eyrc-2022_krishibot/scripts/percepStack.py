@@ -1,74 +1,153 @@
 #! /usr/bin/env python3
 
-## import the necessary libraries
+'''
+*****************************************************************************************
+*
+*        		===============================================
+*           		Krishi Bot (KB) Theme (eYRC 2022-23)
+*        		===============================================
+*
+*  This script is to implement Task 2.2 of Krishi Bot (KB) Theme (eYRC 2022-23).
+*  
+*  This software is made available on an "AS IS WHERE IS BASIS".
+*  Licensee/end user indemnifies and will keep e-Yantra indemnified from
+*  any and all claim(s) that emanate from the use of the Software or 
+*  breach of the terms of this agreement.
+*
+*****************************************************************************************
+'''
+
+# Team ID:			[ Team-ID ]
+# Author List:		[ Names of team members worked on this file separated by Comma: Name1, Name2, ... ]
+# Filename:			percepStack.py
+# Functions:		
+# 					[ Comma separated list of functions in this file ]
+
+
+####################### IMPORT MODULES #######################
 import cv2 
 import rospy
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
 import numpy as np
+# You can add more if required
+##############################################################
 
-# Initialize class objects
-bridge = CvBridge()
 
 # Initialize Global variables
 
-# Write your own custom functions
+
+################# ADD UTILITY FUNCTIONS HERE #################
+
+##############################################################
 
 
-
-# Call Back functions
-def img_callbck(img_msg):
+def img_clbck(img_msg):
     '''
-    Call back function for image
-    Convert the image in a cv2 format and then 
-    pass it to image_processsing function
+    Callback Function for RGB image topic
+
+    Purpose:
+    -----
+    Convert the image in a cv2 format and then pass it 
+    to image_processing function by saving to the 
+    'image' variable.
+
+    Input Args:
+    -----
+    img_msg: Callback message.
     '''
-    global pub #, add global variable if any
+    global pub_rgb #, add global variable if any
 
-    # Your code here to convert the image to cv2 format
-    # and save the converted in image in `image` variable.
+    ############################### Add your code here #######################################
 
+    ##########################################################################################
     pose = image_processing(image)
     pub_rgb.publish(str(pose))
 
-def depth_callbck(depth_msg)
+def depth_clbck(depth_msg):
     '''
-    Find the depth of the centroid from the image_processing, 
-    i.e. finding the depth value of the particular 
-    pixel via the image.
+    Callback Function for Depth image topic
 
-    HINT: the shape of both depth and rgb is different 
+    Purpose:
+	--- 
+    1. Find the depth value of the centroid pixel returned by the
+    image_processing() function.
+    2. Publish the depth value to the topic '/center_depth'
+
+
+    NOTE: the shape of depth and rgb image is different. 
+    
+    Input Args:
+    -----
+    depth_msg: Callback message.
     '''
+    depth_val = []
+    ############################### Add your code here #######################################
 
-    depth_val = # value of depth as per the centroid of the rgb picture after remapping image
+    ##########################################################################################
     pub_depth.publish(str(depth_val))
 
-# --------------------------------------------------------------------------------------------#
-# Do not modify the below function name and return 
-# Only do the changes in the specified portion for this
-# function.
 
 def image_processing(image):
     '''
-    1. Convert the image format, to see you can use cv2.imshow() 
-    2. Use moments to find centroid of the image.
-    3. Set the x and y value for return as the centroid value of the detected fruit
-       and append in the pose variable by doing `pose.append([x, y])`.
-    4. If multiple fuits found then do append multiple times.
+    NOTE: Do not modify the function name and return value.
+          Only do the changes in the specified portion for this
+          function.
+          Use cv2.imshow() for debugging but make sure to REMOVE it before submitting.
+    
+    1. Find the centroid of the bell pepper(s).
+    2. Add the x and y values of the centroid to a list.  
+    3. Then append this list to the pose variable.
+    3. If multiple fruits are found then append to pose variable multiple times.
+
+    Input Args:
+    ------
+    image: Converted image in cv2 format.
+
+    Example:
+    ----
+    pose = [[x1, y1] , [x2, y2] ...... ]
     '''
     pose = []
     ############### Write Your code to find centroid of the bell peppers #####################
 
     ##########################################################################################
     return pose
-#----------------------------------------------------------------------------------------------#
 
-rospy.init_node("percepStack", anonymous=True)
-# Only for one image, you have to iterate over three images in the same script
-# and pulish the centroid and depth in the same script for three images
-sub_image_color_1 = rospy.Subscriber("/device_0/sensor_1/Color_0/image/data_1", Image, img_callbck)
-sub_image_depth_1 = rospy.Subscriber("/device_0/sensor_0/Depth_0/image/data_1", Image, depth_callbck)
 
-pub_rgb = rospy.Publisher('/center_rgb', String, queue_size = 1)
-pub_depth = rospy.Publisher('/center_depth', String, queue_size = 1)
+
+def main():
+    '''
+    MAIN FUNCTION
+
+    Purpose:
+    -----
+    Initialize ROS node and do the publish and subscription of data.
+
+    NOTE: We have done the subscription only for one image, you have to iterate over 
+    three images in the same script and publish the centroid and depth in the 
+    same script for three images, calling the same callback function.
+
+    '''
+
+    #### EDIT YOUR CODE HERE FOR SUBSCRIBING TO OTHER TOPICS AND TO APPLY YOUR ALGORITHM TO PUBLISH #####
+
+    rospy.init_node("percepStack", anonymous=True)
+    sub_image_color_1 = rospy.Subscriber("/device_0/sensor_1/Color_0/image/data_1", Image, img_clbck)
+    sub_image_depth_1 = rospy.Subscriber("/device_0/sensor_0/Depth_0/image/data_1", Image, depth_clbck)
+
+
+    pub_rgb = rospy.Publisher('/center_rgb', String, queue_size = 1)
+    pub_depth = rospy.Publisher('/center_depth', String, queue_size = 1)
+
+    ####################################################################################################
+    rospy.spin()
+
+if __name__ == '__main__':
+    try:
+        main()
+    except Exception as e:
+        print("Error:", str(e))
+    finally:
+        print("Executed Perception Stack Script")
