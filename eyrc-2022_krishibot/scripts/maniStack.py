@@ -7,6 +7,11 @@ import moveit_msgs.msg
 import geometry_msgs.msg
 import actionlib
 import math 
+import tf
+from Pepper_finder import PerceptionStack
+
+#tfBuffer = tf.Buffer()
+
 
 
 class Ur5Moveit:
@@ -37,9 +42,10 @@ class Ur5Moveit:
         self._planning_frame1 = self._group1.get_planning_frame()
         self._eef_link1= self._group1.get_end_effector_link()
         self._group_names1 = self._robot.get_group_names()
-        self._curr_state = self._robot.get_current_state()
+        self._box_name = ''
 
-        # Printing the planning frame , end effector link , group name 
+        # Current State of the Robot is needed to add box to planning scene
+        self._curr_state = self._robot.get_current_state()
 
         rospy.loginfo(
             '\033[94m' + "Planning Group: {}".format(self._planning_frame1) + '\033[0m')
@@ -49,8 +55,6 @@ class Ur5Moveit:
             '\033[94m' + "Group Names: {}".format(self._group_names1) + '\033[0m')
 
         rospy.loginfo('\033[94m' + " >>> Ur5Moveit init done." + '\033[0m')
-
-    # Go to predefined pose using the joint angles 
 
     def go_to_predefined_pose(self, arg_pose_name, group_id):
 
@@ -71,8 +75,6 @@ class Ur5Moveit:
         self._exectute_trajectory_client.send_goal(goal)
         self._exectute_trajectory_client.wait_for_result()
         rospy.loginfo('\033[94m' + "Now at Pose: {}".format(arg_pose_name) + '\033[0m')
-
-    # Go to function for predefined pose from moveit setup
 
     def go_to_pose(self, arg_pose):
 
@@ -101,9 +103,6 @@ class Ur5Moveit:
                 '\033[94m' + ">>> go_to_pose() Failed. Solution for Pose not Found." + '\033[0m')
 
         return flag_plan
-
-    # Setting up the joints angles
-
     def set_joint_angles(self, arg_list_joint_angles):
 
         list_joint_values = self._group1.get_current_joint_values()
@@ -122,6 +121,17 @@ class Ur5Moveit:
         rospy.loginfo('\033[94m' + ">>> Final Pose:" + '\033[0m')
         rospy.loginfo(pose_values)   
 
+
+    # def go_to_predefined_pose(self, arg_pose_name):
+    #     rospy.loginfo('\033[94m' + "Going to Pose: {}".format(arg_pose_name) + '\033[0m')
+    #     self._group2.set_named_target(arg_pose_name)
+    #     plan = self._group2.plan()
+    #     goal = moveit_msgs.msg.ExecuteTrajectoryGoal()
+    #     goal.trajectory = plan
+    #     self._exectute_trajectory_client.send_goal(goal)
+    #     self._exectute_trajectory_client.wait_for_result()
+    #     rospy.loginfo('\033[94m' + "Now at Pose: {}".format(arg_pose_name) + '\033[0m')
+
     # Destructor
     def __del__(self):
         moveit_commander.roscpp_shutdown()
@@ -130,48 +140,32 @@ class Ur5Moveit:
 
 
 def main():
-    # calling ur5 class to go to the peppers
-
+    
     ur5 = Ur5Moveit()
+    ps = PerceptionStack() 
 
-    # intermediate pose for red pepper
-    intermediate_pose1 = [math.radians(88),math.radians(29),math.radians(-3),math.radians(-23),math.radians(0),math.radians(0)]
-    #  intermediate pose for yellow pepper
-    intermediate_pose2 = [math.radians(59),math.radians(39),math.radians(-71),math.radians(-23),math.radians(-17),math.radians(0)]
-    # red pepper pose
-    red_pepper = [math.radians(74),math.radians(59),math.radians(-90),math.radians(3),math.radians(1),math.radians(-9)]
-    # red pepper drop pose
-    red_drop = [math.radians(-31),math.radians(-7),math.radians(3),math.radians(-1),math.radians(-2),math.radians(-8)]
-    # yellow pepper drop pose 
-    yellow_drop = [math.radians(13),math.radians(-7),math.radians(3),math.radians(-1),math.radians(-2),math.radians(-8)]
-    # yellow pepper pose
-    yellow_pepper = [math.radians(94),math.radians(60),math.radians(-49),math.radians(0),math.radians(0),math.radians(0)]
-
-    while not rospy.is_shutdown():  
+    detect_pose = [math.radians(100),math.radians(-25),math.radians(-54),math.radians(82),math.radians(-7),math.radians(0)]
+   
+    while not rospy.is_shutdown():        
+        
+        ur5.set_joint_angles(detect_pose)
+        rospy.sleep(3)
+        pose = ps.rgb_image_processing()
+        depth_val = ps.depth_image_processing(pose)
         
         
-        # ur5.set_joint_angles(intermediate_pose1) 
-        ur5.set_joint_angles(intermediate_pose2) 
-        ur5.set_joint_angles(red_pepper) 
-           
-        ur5.go_to_predefined_pose("closed", 2)
-         
-        ur5.set_joint_angles(intermediate_pose2) 
-        ur5.set_joint_angles(red_drop) 
+        
 
-        ur5.go_to_predefined_pose("open", 2)
+        
+        
 
-        #ur5.go_to_predefined_pose("close", 2)
-        ur5.set_joint_angles(intermediate_pose1) 
-        ur5.set_joint_angles(yellow_pepper) 
-        ur5.go_to_predefined_pose("closed", 2)
-        # ur5.set_joint_angles(intermediate_pose1) 
-        ur5.set_joint_angles(yellow_drop)
-        ur5.go_to_predefined_pose("open", 2)
-
-        rospy.sleep(1)  
 
     del ur5
 
+
 if __name__ == '__main__':
+
+    #rospy.init_node('manistack')
+    
     main()
+
