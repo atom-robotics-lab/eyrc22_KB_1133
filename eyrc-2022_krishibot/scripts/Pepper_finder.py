@@ -62,7 +62,7 @@ class PerceptionStack:
     
     def depth_callback(self, depth_message) :
         self.depth_image = self.bridge.imgmsg_to_cv2(depth_message, desired_encoding=depth_message.encoding)
-        depth_shape = self.depth_image.shape 
+        self.depth_shape = self.depth_image.shape 
 
     def mask(self, frame, lower, upper):
     
