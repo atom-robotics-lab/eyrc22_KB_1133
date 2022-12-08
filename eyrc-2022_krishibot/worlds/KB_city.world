@@ -9,7 +9,7 @@
 *
 *  Filename:			KB_city.world
 *  Created:				28/08/2022
-*  Last Modified:		29/09/2022
+*  Last Modified:		25/11/2022
 *  Modified by:   		Amit
 *  Author:				Amit (e-Yantra Team)
 *  
@@ -123,11 +123,11 @@
     </scene>
     <include>
       <uri>model://KB_Greenhouse</uri>
-      <pose>7.2 -1.16 -0.03 0 0 -1.57</pose>
+      <pose>7.2 -1.16 -0.13 0 0 -1.57</pose>
 	</include>
     <include>
       <uri>model://KB_Greenhouse_Ground</uri>
-      <pose>5.2 -0.3 0.155 0 0 -1.57</pose>
+      <pose>7.1 -1.1 -0.1 0 0 -1.57</pose>
 	</include>
 
 	<include> 
@@ -139,12 +139,12 @@
     <include>
 	  	<uri>model://start_zone</uri>
 		  <name>start_zone</name>
-		  <pose>0 0 0.07 0 0 0</pose>
+		  <pose>0 0 0 0 0 0</pose>
     </include>
 
 <!-- 0 -->
 	<include>
-		<uri>model://plant_bell_pepper_red</uri>
+		<uri>model://plant_bell_pepper_brown</uri>
 		<name>plant00</name>
 		<pose>1.5 0.8 0.49 0 0 5.34188268943</pose>
 	</include>
@@ -157,7 +157,7 @@
 
 <!-- 1 -->
 	<include>
-		<uri>model://plant_bell_pepper_brown</uri>
+		<uri>model://plant_bell_pepper_red</uri>
 		<name>plant01</name>
 		<pose>2.3 0.8 0.49 0 0 2.6135652518</pose>
 	</include>
@@ -247,7 +247,7 @@
 
 <!-- 8 -->
 	<include>
-		<uri>model://plant_bell_pepper_brown</uri>
+		<uri>model://plant_bell_pepper_yellow</uri>
 		<name>plant08</name>
 		<pose>7.9 0.8 0.49 0 0 1.96971919901</pose>
 	</include>
@@ -260,7 +260,7 @@
 
 <!-- 9 -->
 	<include>
-		<uri>model://plant_bell_pepper_yellow</uri>
+		<uri>model://plant_bell_pepper_brown</uri>
 		<name>plant09</name>
 		<pose>8.7 0.8 0.49 0 0 5.64805043451</pose>
 	</include>
@@ -314,7 +314,7 @@
 	<include>
 		<uri>model://plant_bell_pepper_yellow</uri>
 		<name>plant13</name>
-		<pose>3.9 -0.8 0.49 0 0 3.33601631712</pose>
+		<pose>3.9 -0.8 0.49 0 0 3.14</pose>
 	</include>
 
 	<include>
@@ -418,7 +418,7 @@
 
 <!-- 21 -->
 	<include>
-		<uri>model://plant_bell_pepper_yellow</uri>
+		<uri>model://plant_bell_pepper_brown</uri>
 		<name>plant21</name>
 		<pose>11.5 -2.2 2 0 0 1.25317275085</pose>
 	</include>
@@ -511,7 +511,7 @@
 
 <!-- 28 -->
 	<include>
-		<uri>model://plant_bell_pepper_brown</uri>
+		<uri>model://plant_bell_pepper_yellow</uri>
 		<name>plant28</name>
 		<pose>7.4 3.4 2 0 0 1.25317275085</pose>
 	</include>
@@ -591,7 +591,7 @@
 	<include>
 		<uri>model://plant_bell_pepper_red</uri>
 		<name>plant34</name>
-		<pose>2.6 3.4 2 0 0 1.25317275085</pose>
+		<pose>2.6 3.4 2 0 0 0</pose>
 	</include>
 
 	<include>
