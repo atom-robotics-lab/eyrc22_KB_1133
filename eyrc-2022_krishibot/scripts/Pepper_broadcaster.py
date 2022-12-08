@@ -47,10 +47,17 @@ import geometry_msgs.msg
 
 from tf2_geometry_msgs import PoseStamped
 from geometry_msgs.msg import Point,Pose
+import tf
+import os
+
+import subprocess
 
 
 
 ##############################################################
+
+
+
 
 class PerceptionStack:
     def __init__(self) :
@@ -253,7 +260,7 @@ class PerceptionStack:
             X = current_depth * ((current_pose[0]-cx)/fx)
             Y = current_depth * ((current_pose[1]-cy)/fy)
             Z = current_depth
-            print(X , Y , Z )
+            #print(X , Y , Z )
             transforms.append([X,Y,Z])
 
         return transforms
@@ -309,20 +316,24 @@ class PerceptionStack:
             self.pub_tf1.publish(tfm1)
 
             rospy.sleep(2)
+        else :
+            self.red_pub.publish(str(self.output[1]))
+            
+            t = geometry_msgs.msg.TransformStamped()
+            t.header.frame_id = "camera_depth_frame2"
+            t.header.stamp = rospy.Time.now()
+            t.transform.translation.x = self.output[0][0]
+            t.transform.translation.y = self.output[0][1]
+            t.transform.translation.z = self.output[0][2]
+            t.transform.rotation.x = 0
+            t.transform.rotation.y = 0
+            t.transform.rotation.z = 0
+            t.transform.rotation.w = 1            
+            tfm = tf2_msgs.msg.TFMessage([t])
+            self.pub_tf.publish(tfm)
 
-            # detect_pose1 = geometry_msgs.msg.Pose()
-            # detect_pose1.position.x = transform[0]
-            # detect_pose1.position.y = transform[1]
-            # detect_pose1.position.z =  transform[2]
 
-            # detect_pose1.orientation.x = -0.14770761462167648
-            # detect_pose1.orientation.y = 0.9886845985686313
-            # detect_pose1.orientation.z = -0.026166747456944396
-            # detect_pose1.orientation.w = 0.000725578033768894 
-            # flag = False
-            # while not flag:
-
-            #     flag = self.go_to_pose(detect_pose1)
+            
             
         self.pub.publish(str(self.output))
         
@@ -403,48 +414,143 @@ class PerceptionStack:
         # self.listener.waitForTransform("ebot_base" , "pepper" , rospy.Time() , rospy.Duration(4.0))
         rospy.loginfo("in the transform function")
         transform = []
-        trans = self.tf_buffer.lookup_transform('ebot_base' , 'fruit_red' , rospy.Time())
-        x = trans.transform.translation.x
+        #trans = self.tf_buffer.lookup_transform('ebot_base' , 'fruit_red' , rospy.Time())
+        listener = tf.TransformListener()
+        listener.waitForTransform("ebot_base", "fruit_red", rospy.Time(), rospy.Duration(4.0))
+        (trans, rot) = listener.lookupTransform('ebot_base', 'fruit_red',rospy.Time())
+
+        '''x = trans.transform.translation.x
         y = trans.transform.translation.y
         z = trans.transform.translation.z
         x1 = trans.transform.rotation.x
         y1 = trans.transform.rotation.y
         z1 = trans.transform.rotation.z
-        w = trans.transform.rotation.w
+        w = trans.transform.rotation.w'''
 
-        transform = [x , y , z , x1 , y1 , z1 , w]
+        #transform = list(trans) + list(rot)
+        #bashCommand_source = "source devel/setup.bash"
+        #bashCommand_red = "rosrun tf tf_echo ebot_base fruit_red"
+        
+        #process = subprocess.Popen(bashCommand_source.split(), stdout = subprocess.PIPE)
+        #output, error = process.communicate()
 
-        return transform
+        #process = subprocess.Popen(bashCommand_red.split(), stdout = subprocess.PIPE)
+        #output, error = process.communicate()
+
+        #res1 = subprocess.run(bashCommand_source.split())
+        #output = subprocess.run(bashCommand_red, capture_output=True)
+
+        #transform = output
+        print("TRANSFORM :" , trans, rot)
+
+        return trans, rot
+
+
 
 def main():
 
     rospy.init_node("pepperfinder", anonymous=True)
     try:
+        #ur5 = Ur5Moveit()
         ps = PerceptionStack()
         detect_pose = [math.radians(100),math.radians(-25),math.radians(-54),math.radians(82),math.radians(-7),math.radians(0)]
         inter_pose = [math.radians(-80),math.radians(0),math.radians(0),math.radians(0),math.radians(0),math.radians(0)]
         inter_pose2 =  [math.radians(-257),math.radians(-23),math.radians(-60),math.radians(86),math.radians(0),math.radians(-1)]
+        arjun_inter_pose =  [math.radians(-244),math.radians(17),math.radians(1),math.radians(-25),math.radians(0),math.radians(-180)]
         ps.set_joint_angles(inter_pose)
         ps.set_joint_angles(inter_pose2)
         rospy.loginfo("publishing the transform")
-        transform = ps.transform_pose()
-        print(transform)
+        
+        #print(transform)
 
-        detect_pose1 = geometry_msgs.msg.Pose()
-        detect_pose1.position.x = transform[0] - 0.5
-        detect_pose1.position.y = transform[1]
-        detect_pose1.position.z =  transform[2]
+        inter_pose = [math.radians(-80),math.radians(0),math.radians(0),math.radians(0),math.radians(0),math.radians(0)]
+        inter_pose2 =  [math.radians(-244),math.radians(17),math.radians(1),math.radians(-25),math.radians(0),math.radians(-180)]
+        yellow_basket =  [math.radians(11),math.radians(0),math.radians(0),math.radians(0),math.radians(0),math.radians(0)]
 
-        detect_pose1.orientation.x = -0.11339548561710626
-        detect_pose1.orientation.y = 0.9931652834334606
-        detect_pose1.orientation.z = -0.025094005244503455
-        detect_pose1.orientation.w = 0.011596315146774774 
+        detect_pose = geometry_msgs.msg.Pose()
+        detect_pose.position.x = 0.1096910324768404
+        detect_pose.position.y = -0.343399873902921
+        detect_pose.position.z =  1.0550548568280893
 
+        detect_pose.orientation.x = -0.14770761462167648
+        detect_pose.orientation.y = 0.9886845985686313
+        detect_pose.orientation.z = -0.026166747456944396
+        detect_pose.orientation.w = 0.000725578033768894
+
+        
+        
         flag = False
+        while not flag:  
+            rospy.sleep(10)
+            trans, rot = ps.transform_pose()
 
-        while not flag:
-            rospy.loginfo("trying the go to pose")
-            flag = ps.go_to_pose(detect_pose1)
+            ps.set_joint_angles(inter_pose2)
+
+            yellow_pose = geometry_msgs.msg.Pose()
+            yellow_pose.position.x = trans[0]
+            yellow_pose.position.y = trans[1]
+            yellow_pose.position.z =  trans[2]
+
+            yellow_pose.orientation.x = -0.11339548561710626
+            yellow_pose.orientation.y = 0.9931652834334606
+            yellow_pose.orientation.z = -0.025094005244503455
+            yellow_pose.orientation.w = 0.011596315146774774       
+            
+            print("YELLOW POSE")
+            flag = ps.go_to_pose(yellow_pose)
+            '''yellow_pose, red_pose = ps.rgb_image_processing()
+            #print("red_pose : ", red_pose)
+            #print("yellow_pose : ", yellow_pose)
+            depth_yellow, depth_red = ps.depth_image_processing(yellow_pose), ps.depth_image_processing(red_pose)
+
+            yellow_transforms, red_transforms = find_transforms(yellow_pose, depth_yellow), find_transforms(red_pose, depth_red)
+
+            print("YELLOW TRANSFORM : ", yellow_transforms)
+            print("RED TRANSFORM : ", red_transforms)
+
+            for i in range(len(yellow_transforms)) :
+                #ur5.set_joint_angles(inter_pose2)
+
+                ur5.go_to_predefined_pose("open", 2)
+
+
+                flag = ur5.go_to_pose(yellow_transforms[i])
+
+                #print(transforms[i])
+                #transforms[i].pose.position.y -= 0.15
+                #ur5.go_to_pose(transforms[i])
+                #flag = False
+
+                #while not flag : 
+                ur5.go_to_predefined_pose("close", 2)
+
+                ur5.set_joint_angles(yellow_basket)
+
+                ur5.go_to_predefined_pose("open", 2)
+
+            for i in range(len(red_transforms)) :
+                #ur5.set_joint_angles(inter_pose2)
+
+                ur5.go_to_predefined_pose("open", 2)
+
+
+                flag = ur5.go_to_pose(red_transforms[i])
+
+                #print(transforms[i])
+                #transforms[i].pose.position.y -= 0.15
+                #ur5.go_to_pose(transforms[i])
+                #flag = False
+
+                #while not flag : 
+                ur5.go_to_predefined_pose("close", 2)
+
+                ur5.set_joint_angles(yellow_basket)
+
+                ur5.go_to_predefined_pose("open", 2)'''
+
+
+
+        
 
     except Exception as e:
         print("Error:", str(e))    
