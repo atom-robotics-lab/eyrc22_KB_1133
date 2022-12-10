@@ -443,9 +443,20 @@ def main():
         rospy.loginfo("Got the xyz values now finding the transforms")
         transform,rot=ps.transform_pose()
         rospy.loginfo("Got the transforms")
-        rospy.loginfo("Trying to go to the pose")
         print(transform)
-        ps.go_to_pose(transform)
+        rospy.loginfo("Finding the pose")
+        detect_pose = geometry_msgs.msg.Pose()
+        detect_pose.position.x = transform[0]
+        detect_pose.position.y = transform[1]
+        detect_pose.position.z =  transform[2]
+
+        detect_pose.orientation.x = 0
+        detect_pose.orientation.y = 0
+        detect_pose.orientation.z = 0
+        detect_pose.orientation.w = 0.5       
+        print(detect_pose)    
+        rospy.loginfo("Trying to go to the pose")
+        ps.go_to_pose(detect_pose)
         rospy.loginfo("Reached the Pose")
 
         
@@ -456,15 +467,7 @@ def main():
         # inter_pose2 =  [math.radians(-244),math.radians(17),math.radians(1),math.radians(-25),math.radians(0),math.radians(-180)]
         # yellow_basket =  [math.radians(11),math.radians(0),math.radians(0),math.radians(0),math.radians(0),math.radians(0)]
 
-        # detect_pose = geometry_msgs.msg.Pose()
-        # detect_pose.position.x = 0.1096910324768404
-        # detect_pose.position.y = -0.343399873902921
-        # detect_pose.position.z =  1.0550548568280893
-
-        # detect_pose.orientation.x = -0.14770761462167648
-        # detect_pose.orientation.y = 0.9886845985686313
-        # detect_pose.orientation.z = -0.026166747456944396
-        # detect_pose.orientation.w = 0.000725578033768894
+        
 
         # rospy.sleep(10)
         
