@@ -81,6 +81,7 @@ class PerceptionStack:
         
         self.rgb_image, self.depth_image = None, None
         self.rgb_shape, self.depth_shape = None, None
+        self.found=False
         self.tf_buffer = tf2_ros.Buffer()
         self.listener = tf2_ros.TransformListener(self.tf_buffer)
         self._planning_group1 = "arm"
@@ -240,7 +241,7 @@ class PerceptionStack:
         self.depth_image = self.bridge.imgmsg_to_cv2(depth_message, desired_encoding=depth_message.encoding)
         self.depth_shape = self.depth_image.shape 
 
-    def find_transforms(self,pose, depth_val) :
+    def find_transforms(self,pose, depth_val) : # Finds XYZ coordinates
         transforms = []
         fx, fy = [554.3827128226441, 554.3827128226441]
         cx, cy = [320.5, 240.5]
@@ -254,9 +255,6 @@ class PerceptionStack:
         X , Y , Z = 0 , 0, 0
         for i in range(len(pose)) :
             current_pose, current_depth = pose[i], depth_val[i]
-
-    
-
             X = current_depth * ((current_pose[0]-cx)/fx)
             Y = current_depth * ((current_pose[1]-cy)/fy)
             Z = current_depth
@@ -265,35 +263,39 @@ class PerceptionStack:
 
         return transforms
 
-
-    def callback(self,depth_data, rgb_data) :
-
-        self.depth_callback(depth_data)
-        self.rgb_callback(rgb_data)
+    def detect(self):
         pose=self.rgb_image_processing()
+        self.pose=pose
         #cv2.imshow("depth",self.depth_image)
         #cv2.waitKey(0)
         depth=self.depth_image_processing(pose)
-        # print("Pose:",pose,type(pose))
-        # print("Depth:",depth,type(depth))
-        self.output=self.find_transforms(pose,depth) # add indexing to depth and remove in case of only one bell peper
-        # print("Output:",self.output)
-        # if len(self.output)==1:
-        #     self.yellow_pub.publish(str(self.output[0]))
+        self.depth=depth
+        print("Pose:",pose,type(pose))
+        print("Depth:",depth,type(depth))
+        self.XYZ=self.find_transforms(pose,depth) # add indexing to depth and remove in case of only one bell peper
+        print("Output XYZ:",self.XYZ)
+        self.pub.publish(str(self.XYZ))
+
+        if len(self.XYZ)>1:
+            self.found=True
+        else:
+            self.found=False
 
 
-
-        if len(self.output)>1:
-            self.red_pub.publish(str(self.output[0]))
-            self.yellow_pub.publish(str(self.output[1]))
+    def callback(self,depth_data, rgb_data) :
+        self.depth_callback(depth_data)
+        self.rgb_callback(rgb_data)
+        if self.found:
+            self.red_pub.publish(str(self.XYZ[0]))
+            self.yellow_pub.publish(str(self.XYZ[1]))
             
             t = geometry_msgs.msg.TransformStamped()
             t.header.frame_id = "camera_depth_frame2"
             t.header.stamp = rospy.Time.now()
             t.child_frame_id = "fruit_yellow"
-            t.transform.translation.x = self.output[0][0]
-            t.transform.translation.y = self.output[0][1]
-            t.transform.translation.z = self.output[0][2]
+            t.transform.translation.x = self.XYZ[0][0]
+            t.transform.translation.y = self.XYZ[0][1]
+            t.transform.translation.z = self.XYZ[0][2]
             t.transform.rotation.x = 0
             t.transform.rotation.y = 0
             t.transform.rotation.z = 0
@@ -305,9 +307,9 @@ class PerceptionStack:
             t1.header.frame_id = "camera_depth_frame2"
             t1.header.stamp = rospy.Time.now()
             t1.child_frame_id = "fruit_red"
-            t1.transform.translation.x = self.output[1][0]
-            t1.transform.translation.y = self.output[1][1]
-            t1.transform.translation.z = self.output[1][2]
+            t1.transform.translation.x = self.XYZ[1][0]
+            t1.transform.translation.y = self.XYZ[1][1]
+            t1.transform.translation.z = self.XYZ[1][2]
             t1.transform.rotation.x = 0
             t1.transform.rotation.y = 0
             t1.transform.rotation.z = 0
@@ -315,29 +317,8 @@ class PerceptionStack:
             tfm1 = tf2_msgs.msg.TFMessage([t1])
             self.pub_tf1.publish(tfm1)
 
-            rospy.sleep(2)
-        else :
-            self.red_pub.publish(str(self.output[1]))
-            
-            t = geometry_msgs.msg.TransformStamped()
-            t.header.frame_id = "camera_depth_frame2"
-            t.header.stamp = rospy.Time.now()
-            t.transform.translation.x = self.output[0][0]
-            t.transform.translation.y = self.output[0][1]
-            t.transform.translation.z = self.output[0][2]
-            t.transform.rotation.x = 0
-            t.transform.rotation.y = 0
-            t.transform.rotation.z = 0
-            t.transform.rotation.w = 1            
-            tfm = tf2_msgs.msg.TFMessage([t])
-            self.pub_tf.publish(tfm)
 
 
-            
-            
-        self.pub.publish(str(self.output))
-        
-        
     def mask(self, frame, lower, upper):
     
         obj_radius = []    
@@ -363,11 +344,9 @@ class PerceptionStack:
             if radius > 10:
                 obj_radius.append(radius)
                 obj_center.append(list(center[::-1]))
-
         #cv2.circle(frame,obj_center[0],30,(0,0,255),2)
         #cv2.imshow("Frame",frame)
         #cv2.waitKey(1)
-
         return [obj_center,obj_radius]
 
 
@@ -448,10 +427,8 @@ class PerceptionStack:
 
 
 def main():
-
     rospy.init_node("pepperfinder", anonymous=True)
     try:
-        #ur5 = Ur5Moveit()
         ps = PerceptionStack()
         detect_pose = [math.radians(100),math.radians(-25),math.radians(-54),math.radians(82),math.radians(-7),math.radians(0)]
         inter_pose = [math.radians(-80),math.radians(0),math.radians(0),math.radians(0),math.radians(0),math.radians(0)]
@@ -460,45 +437,56 @@ def main():
         ps.set_joint_angles(inter_pose)
         ps.set_joint_angles(inter_pose2)
         rospy.loginfo("publishing the transform")
+        rospy.loginfo("Detecting Peppers")
+        ps.detect()
+        rospy.sleep(1)
+        rospy.loginfo("Got the xyz values now finding the transforms")
+        transform,rot=ps.transform_pose()
+        rospy.loginfo("Got the transforms")
+        rospy.loginfo("Trying to go to the pose")
+        print(transform)
+        ps.go_to_pose(transform)
+        rospy.loginfo("Reached the Pose")
+
+        
         
         #print(transform)
 
-        inter_pose = [math.radians(-80),math.radians(0),math.radians(0),math.radians(0),math.radians(0),math.radians(0)]
-        inter_pose2 =  [math.radians(-244),math.radians(17),math.radians(1),math.radians(-25),math.radians(0),math.radians(-180)]
-        yellow_basket =  [math.radians(11),math.radians(0),math.radians(0),math.radians(0),math.radians(0),math.radians(0)]
+        # inter_pose = [math.radians(-80),math.radians(0),math.radians(0),math.radians(0),math.radians(0),math.radians(0)]
+        # inter_pose2 =  [math.radians(-244),math.radians(17),math.radians(1),math.radians(-25),math.radians(0),math.radians(-180)]
+        # yellow_basket =  [math.radians(11),math.radians(0),math.radians(0),math.radians(0),math.radians(0),math.radians(0)]
 
-        detect_pose = geometry_msgs.msg.Pose()
-        detect_pose.position.x = 0.1096910324768404
-        detect_pose.position.y = -0.343399873902921
-        detect_pose.position.z =  1.0550548568280893
+        # detect_pose = geometry_msgs.msg.Pose()
+        # detect_pose.position.x = 0.1096910324768404
+        # detect_pose.position.y = -0.343399873902921
+        # detect_pose.position.z =  1.0550548568280893
 
-        detect_pose.orientation.x = -0.14770761462167648
-        detect_pose.orientation.y = 0.9886845985686313
-        detect_pose.orientation.z = -0.026166747456944396
-        detect_pose.orientation.w = 0.000725578033768894
+        # detect_pose.orientation.x = -0.14770761462167648
+        # detect_pose.orientation.y = 0.9886845985686313
+        # detect_pose.orientation.z = -0.026166747456944396
+        # detect_pose.orientation.w = 0.000725578033768894
 
+        # rospy.sleep(10)
         
-        
-        flag = False
-        while not flag:  
-            rospy.sleep(10)
-            trans, rot = ps.transform_pose()
+        # flag = False
+        # while not flag:  
+        #     trans, rot = ps.transform_pose()
 
-            ps.set_joint_angles(inter_pose2)
+        #     ps.set_joint_angles(inter_pose2)
 
-            yellow_pose = geometry_msgs.msg.Pose()
-            yellow_pose.position.x = trans[0]
-            yellow_pose.position.y = trans[1]
-            yellow_pose.position.z =  trans[2]
+        #     yellow_pose = geometry_msgs.msg.Pose()
+        #     yellow_pose.position.x = trans[0]
+        #     yellow_pose.position.y = trans[1]
+        #     yellow_pose.position.z =  trans[2]
 
-            yellow_pose.orientation.x = -0.11339548561710626
-            yellow_pose.orientation.y = 0.9931652834334606
-            yellow_pose.orientation.z = -0.025094005244503455
-            yellow_pose.orientation.w = 0.011596315146774774       
+        #     yellow_pose.orientation.x = -0.11339548561710626
+        #     yellow_pose.orientation.y = 0.9931652834334606
+        #     yellow_pose.orientation.z = -0.025094005244503455
+        #     yellow_pose.orientation.w = 0.011596315146774774       
             
-            print("YELLOW POSE")
-            flag = ps.go_to_pose(yellow_pose)
-            '''yellow_pose, red_pose = ps.rgb_image_processing()
+        #     print("YELLOW POSE")
+        #     flag = ps.go_to_pose(yellow_pose)
+        '''yellow_pose, red_pose = ps.rgb_image_processing()
             #print("red_pose : ", red_pose)
             #print("yellow_pose : ", yellow_pose)
             depth_yellow, depth_red = ps.depth_image_processing(yellow_pose), ps.depth_image_processing(red_pose)
@@ -548,15 +536,9 @@ def main():
 
                 ur5.go_to_predefined_pose("open", 2)'''
 
-
-
-        
-
     except Exception as e:
         print("Error:", str(e))    
 
-
 if __name__=="__main__" :
-
     main()
     rospy.spin()
