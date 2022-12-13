@@ -501,7 +501,7 @@ def main():
         red_pose = geometry_msgs.msg.Pose()
         red_pose.position.x = round(transform_red[0] ,2 ) + 0.07 
         red_pose.position.y = round(transform_red[1] ,2 ) - 0.04
-        red_pose.position.z = round(transform_red[2] ,2 ) + 0.24
+        red_pose.position.z = round(transform_red[2] ,2 ) 
 
         # red_pose.orientation.x = 0
         # red_pose.orientation.y = 0
