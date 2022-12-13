@@ -489,7 +489,7 @@ def main():
         yellow_pose = geometry_msgs.msg.Pose()
         yellow_pose.position.x = round(transform_yellow[0] ,2 ) + 0.18 - 0.26
         yellow_pose.position.y = round(transform_yellow[1] ,2 ) + 0.15  + 0.03
-        yellow_pose.position.z = round(transform_yellow[2] ,2 ) + 0.01  - 0.22
+        yellow_pose.position.z = round(transform_yellow[2] ,2 ) + 0.01  
 
 
 
@@ -501,7 +501,7 @@ def main():
         red_pose = geometry_msgs.msg.Pose()
         red_pose.position.x = round(transform_red[0] ,2 ) + 0.07 
         red_pose.position.y = round(transform_red[1] ,2 ) - 0.04
-        red_pose.position.z = round(transform_red[2] ,2 ) 
+        red_pose.position.z = round(transform_red[2] ,2 ) + 0.24
 
         # red_pose.orientation.x = 0
         # red_pose.orientation.y = 0
