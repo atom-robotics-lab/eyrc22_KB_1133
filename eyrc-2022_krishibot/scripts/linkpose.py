@@ -27,7 +27,7 @@ class GazeboLinkPose:
 if __name__ == '__main__':
   try:
     rospy.init_node('gazebo_link_pose', anonymous=True)
-    gp = GazeboLinkPose('plant00::t_link_2')
+    gp = GazeboLinkPose('ebot::gripper_finger1_finger_tip_link')
     publish_rate = 10
     rate = rospy.Rate(publish_rate)
     while not rospy.is_shutdown():
@@ -55,3 +55,12 @@ if __name__ == '__main__':
 # [-0.382876169998026, 0.529100098667977, 0.839030203193756
 # [0.022305246893086356, 0.7109682406028226, 1.0512762074530082]
 # [-0.37381036552333524, 0.5138968160213401, 0.7919049246412744]
+
+  x: 0.5168820852871454   
+  y: 0.07053851457126975
+  z: 1.045907913154687
+
+
+  x: 0.2507128890970452   
+  y: 0.10902520625655877
+  z: 0.8251134529581701

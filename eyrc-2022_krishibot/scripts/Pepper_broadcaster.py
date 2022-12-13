@@ -151,7 +151,7 @@ class PerceptionStack:
 
         pose_values = self._group1.get_current_pose().pose
         rospy.loginfo('\033[94m' + ">>> Current Pose:" + '\033[0m')
-        # rospy.loginfo(pose_values)
+        rospy.loginfo(pose_values)
         # self._group.setPlanningTime(10)
         self._group1.set_pose_target(arg_pose)
         #self._group1.setPlanningTime(10)
@@ -436,7 +436,16 @@ def main():
         inter_pose = [math.radians(-80),math.radians(0),math.radians(0),math.radians(0),math.radians(0),math.radians(0)]
         inter_pose2 =  [math.radians(-257),math.radians(-23),math.radians(-60),math.radians(86),math.radians(0),math.radians(-1)]
         arjun_inter_pose =  [math.radians(-244),math.radians(17),math.radians(1),math.radians(-25),math.radians(0),math.radians(-180)]
-        ps.set_joint_angles(inter_pose)
+        # zero_pose = geometry_msgs.msg.Pose()
+        # zero_pose.position.x = 0
+        # zero_pose.position.y = 0
+        # zero_pose.position.z = 0
+        # flag1 = False
+        # while not flag1:
+
+        #     flag1 = ps.go_to_pose(zero_pose)
+        #     rospy.loginfo("Reached the Pose")
+        # ps.set_joint_angles(inter_pose)
         ps.set_joint_angles(inter_pose2)
         rospy.loginfo("publishing the transform")
         rospy.loginfo("Detecting Peppers")
@@ -467,9 +476,9 @@ def main():
         t3.header.frame_id = "ebot_base"
         t3.header.stamp = rospy.Time.now()
         t3.child_frame_id = "fruit_yellow_1"
-        t3.transform.translation.x = round(transform_yellow[0] ,2 ) + 0.21
-        t3.transform.translation.y = round(transform_yellow[1] ,2 ) + 0.15
-        t3.transform.translation.z = round(transform_yellow[2] ,2 ) + 0.01
+        t3.transform.translation.x = round(transform_yellow[0] ,2 ) + 0.21 - 0.47
+        t3.transform.translation.y = round(transform_yellow[1] ,2 ) + 0.15 - 0.03
+        t3.transform.translation.z = round(transform_yellow[2] ,2 ) + 0.01 
         t3.transform.rotation.x = 0
         t3.transform.rotation.y = 0
         t3.transform.rotation.z = 0
@@ -478,9 +487,11 @@ def main():
         ps.pub_tf3.publish(tfm3)
 
         yellow_pose = geometry_msgs.msg.Pose()
-        yellow_pose.position.x = round(transform_yellow[0] ,2 ) + 0.18
-        yellow_pose.position.y = round(transform_yellow[1] ,2 ) + 0.15
-        yellow_pose.position.z = round(transform_yellow[2] ,2 ) + 0.01
+        yellow_pose.position.x = round(transform_yellow[0] ,2 ) + 0.18 - 0.26
+        yellow_pose.position.y = round(transform_yellow[1] ,2 ) + 0.15  + 0.03
+        yellow_pose.position.z = round(transform_yellow[2] ,2 ) + 0.01  - 0.22
+
+
 
         # yellow_pose.orientation.x = 0
         # yellow_pose.orientation.y = 0
@@ -488,7 +499,7 @@ def main():
         # yellow_pose.orientation.w = 0.5     
 
         red_pose = geometry_msgs.msg.Pose()
-        red_pose.position.x = round(transform_red[0] ,2 ) + 0.07
+        red_pose.position.x = round(transform_red[0] ,2 ) + 0.07 
         red_pose.position.y = round(transform_red[1] ,2 ) - 0.04
         red_pose.position.z = round(transform_red[2] ,2 ) + 0.24
 
@@ -504,7 +515,7 @@ def main():
         flag2 = False
         while not flag1:
 
-            flag2 = ps.go_to_pose(yellow_pose)
+            flag1 = ps.go_to_pose(yellow_pose)
             rospy.loginfo("Reached the Pose")
         
 
