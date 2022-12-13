@@ -10,7 +10,7 @@
 		<node name="state_node1" pkg="topic_tools" type="throttle" args="messages /gazebo/model_states 10.0"/>
     <node name="state_node2" pkg="topic_tools" type="throttle" args="messages /gazebo/link_states 10.0"/>
 		<node name="rosbag_record_T4" pkg="rosbag" type="record"
-		   args="record -O $(find eyrc-2022_krishibot)/bag_files/$(arg rec_name) --duration=$(arg duration) /gazebo/model_states_throttle /gazebo/link_states_throttle /tf /taskInfo /sysInfo" output="screen"/>
+		   args="record -O $(find eyrc-2022_krishibot)/bag_files/$(arg rec_name) --duration=$(arg duration) /gazebo/model_states_throttle /gazebo/base_collision /gazebo/link_states_throttle /tf /taskInfo /sysInfo" output="screen"/>
 	</group>
 
 
