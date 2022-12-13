@@ -69,6 +69,8 @@ class PerceptionStack:
         self.bridge = CvBridge()
         self.pub_tf = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
         self.pub_tf1 = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
+        self.pub_tf2 = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
+        self.pub_tf3 = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
 
         sub_rgb = message_filters.Subscriber("/camera/color/image_raw2", Image)
         sub_depth = message_filters.Subscriber("/camera/depth/image_raw2", Image)
@@ -447,34 +449,69 @@ def main():
         print(transform_yellow)
         rospy.loginfo("Finding the pose")
 
-        yellow_pose = geometry_msgs.msg.Pose()
-        yellow_pose.position.x = transform_yellow[0]
-        yellow_pose.position.y = transform_yellow[1]
-        yellow_pose.position.z =  transform_yellow[2]
+        t2 = geometry_msgs.msg.TransformStamped()
+        t2.header.frame_id = "ebot_base"
+        t2.header.stamp = rospy.Time.now()
+        t2.child_frame_id = "fruit_red_1"
+        t2.transform.translation.x = round(transform_red[0] ,2 ) + 0.09
+        t2.transform.translation.y = round(transform_red[1] ,2 ) - 0.04
+        t2.transform.translation.z = round(transform_red[2] ,2 ) + 0.24
+        t2.transform.rotation.x = 0
+        t2.transform.rotation.y = 0
+        t2.transform.rotation.z = 0
+        t2.transform.rotation.w = 1            
+        tfm2 = tf2_msgs.msg.TFMessage([t2])
+        ps.pub_tf2.publish(tfm2)
 
-        yellow_pose.orientation.x = 0
-        yellow_pose.orientation.y = 0
-        yellow_pose.orientation.z = 0
-        yellow_pose.orientation.w = 0.5     
+        t3 = geometry_msgs.msg.TransformStamped()
+        t3.header.frame_id = "ebot_base"
+        t3.header.stamp = rospy.Time.now()
+        t3.child_frame_id = "fruit_yellow_1"
+        t3.transform.translation.x = round(transform_yellow[0] ,2 ) + 0.21
+        t3.transform.translation.y = round(transform_yellow[1] ,2 ) + 0.15
+        t3.transform.translation.z = round(transform_yellow[2] ,2 ) + 0.01
+        t3.transform.rotation.x = 0
+        t3.transform.rotation.y = 0
+        t3.transform.rotation.z = 0
+        t3.transform.rotation.w = 1            
+        tfm3 = tf2_msgs.msg.TFMessage([t3])
+        ps.pub_tf3.publish(tfm3)
+
+        yellow_pose = geometry_msgs.msg.Pose()
+        yellow_pose.position.x = round(transform_yellow[0] ,2 ) + 0.18
+        yellow_pose.position.y = round(transform_yellow[1] ,2 ) + 0.15
+        yellow_pose.position.z = round(transform_yellow[2] ,2 ) + 0.01
+
+        # yellow_pose.orientation.x = 0
+        # yellow_pose.orientation.y = 0
+        # yellow_pose.orientation.z = 0
+        # yellow_pose.orientation.w = 0.5     
 
         red_pose = geometry_msgs.msg.Pose()
-        red_pose.position.x = transform_red[0]
-        red_pose.position.y = transform_red[1]
-        red_pose.position.z =  transform_red[2]
+        red_pose.position.x = round(transform_red[0] ,2 ) + 0.07
+        red_pose.position.y = round(transform_red[1] ,2 ) - 0.04
+        red_pose.position.z = round(transform_red[2] ,2 ) + 0.24
 
-        red_pose.orientation.x = 0
-        red_pose.orientation.y = 0
-        red_pose.orientation.z = 0
-        red_pose.orientation.w = 0.5  
+        # red_pose.orientation.x = 0
+        # red_pose.orientation.y = 0
+        # red_pose.orientation.z = 0
+        # red_pose.orientation.w = 0.5  
 
         ps.set_joint_angles(arjun_inter_pose) 
-        #print(detect_pose)    
+        print(detect_pose)    
         rospy.loginfo("Trying to go to the pose")
-        ps.go_to_pose(yellow_pose)
-        rospy.loginfo("Reached the Pose")
+        flag1 = False
+        flag2 = False
+        while not flag1:
+
+            flag2 = ps.go_to_pose(yellow_pose)
+            rospy.loginfo("Reached the Pose")
+        
 
         ps.set_joint_angles(arjun_inter_pose) 
-        ps.go_to_pose(red_pose)
+        while not flag2:
+            rospy.loginfo("going to the red pose ")
+            flag2 = ps.go_to_pose(red_pose)
 
         
         
