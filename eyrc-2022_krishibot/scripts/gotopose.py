@@ -129,8 +129,8 @@ class Ur5Moveit:
         # ur5_pose_1.position.x = -0.20959908029056795
         # ur5_pose_1.position.y = 0.8827731484016123
         # ur5_pose_1.position.z = -0.6189922662354054
-        ur5_pose_1.position.x = 0.057
-        ur5_pose_1.position.y = 0.709
+        ur5_pose_1.position.x = 0.11
+        ur5_pose_1.position.y = 0.68
         ur5_pose_1.position.z = 1.290
 
         ur5_pose_1.orientation.x = -0.1134244319123348
