@@ -62,7 +62,7 @@ class PercepStack():
         self.rgb_image, self.depth_image = None, None
         self.rgb_shape, self.depth_shape = None, None
         self.found=False
-    
+        
     def rgb_callback(self, rgb_message) :
 
         self.rgb_image = self.bridge.imgmsg_to_cv2(rgb_message, desired_encoding = "bgr8")
@@ -74,7 +74,8 @@ class PercepStack():
         self.depth_shape = self.depth_image.shape 
 
     def find_transforms(self,pose, depth_val) : # Finds XYZ coordinates
-        transforms = []
+        transforms = {"red":[],"yellow":[]}
+
         fx, fy = [554.3827128226441, 554.3827128226441]
         cx, cy = [320.5, 240.5]
 
@@ -85,13 +86,22 @@ class PercepStack():
         #pose_array = PoseArray(header=Header(frame_id = "camera_depth_frame2", stamp = rospy.Time(0)))
 
         X , Y , Z = 0 , 0, 0
-        for i in range(len(pose)) :
-            current_pose, current_depth = pose[i], depth_val[i]
+        for i in range(len(pose["red"])) :
+            current_pose, current_depth = pose["red"][i], depth_val["red"][i]
             X = current_depth * ((current_pose[0]-cx)/fx)
             Y = current_depth * ((current_pose[1]-cy)/fy)
             Z = current_depth
             #print(X , Y , Z )
-            transforms.append([X,Y,Z])
+            transforms["red"].append([X,Y,Z])
+        
+        X , Y , Z = 0 , 0, 0
+        for i in range(len(pose["yellow"])) :
+            current_pose, current_depth = pose["yellow"][i], depth_val["yellow"][i]
+            X = current_depth * ((current_pose[0]-cx)/fx)
+            Y = current_depth * ((current_pose[1]-cy)/fy)
+            Z = current_depth
+            #print(X , Y , Z )
+            transforms["yellow"].append([X,Y,Z])
 
         return transforms
 
@@ -108,7 +118,8 @@ class PercepStack():
         print("Output XYZ:",self.XYZ)
         self.pub.publish(str(self.XYZ))
 
-        if len(self.XYZ)>1:
+        l=len(self.XYZ["red"])+len(self.XYZ["yellow"])
+        if l>=1:
             self.found=True
         else:
             self.found=False
@@ -118,36 +129,42 @@ class PercepStack():
         self.depth_callback(depth_data)
         self.rgb_callback(rgb_data)
         if self.found:
-            self.red_pub.publish(str(self.XYZ[0]))
-            self.yellow_pub.publish(str(self.XYZ[1]))
-            
-            t = geometry_msgs.msg.TransformStamped()
-            t.header.frame_id = "camera_depth_frame2"
-            t.header.stamp = rospy.Time.now()
-            t.child_frame_id = "fruit_yellow_1"
-            t.transform.translation.x = self.XYZ[0][0]
-            t.transform.translation.y = self.XYZ[0][1]
-            t.transform.translation.z = self.XYZ[0][2]
-            t.transform.rotation.x = 0
-            t.transform.rotation.y = 0
-            t.transform.rotation.z = 0
-            t.transform.rotation.w = 1            
-            tfm = tf2_msgs.msg.TFMessage([t])
-            self.pub_tf.publish(tfm)
+            self.red_pub.publish(str(self.XYZ["red"]))
+            self.yellow_pub.publish(str(self.XYZ["yellow"]))
 
-            t1 = geometry_msgs.msg.TransformStamped()
-            t1.header.frame_id = "camera_depth_frame2"
-            t1.header.stamp = rospy.Time.now()
-            t1.child_frame_id = "fruit_red_1"
-            t1.transform.translation.x = self.XYZ[1][0]
-            t1.transform.translation.y = self.XYZ[1][1]
-            t1.transform.translation.z = self.XYZ[1][2]
-            t1.transform.rotation.x = 0
-            t1.transform.rotation.y = 0
-            t1.transform.rotation.z = 0
-            t1.transform.rotation.w = 1            
-            tfm1 = tf2_msgs.msg.TFMessage([t1])
-            self.pub_tf1.publish(tfm1)
+            for i in range(len(self.XYZ["red"])):
+                t1 = geometry_msgs.msg.TransformStamped()
+                t1.header.frame_id = "camera_depth_frame2"
+                t1.header.stamp = rospy.Time.now()
+                t1.child_frame_id = "fruit_red_1"
+                t1.transform.translation.x = self.XYZ["red"][i][0]
+                t1.transform.translation.y = self.XYZ["red"][i][1]
+                t1.transform.translation.z = self.XYZ["red"][i][2]
+                t1.transform.rotation.x = 0
+                t1.transform.rotation.y = 0
+                t1.transform.rotation.z = 0
+                t1.transform.rotation.w = 1            
+                tfm1 = tf2_msgs.msg.TFMessage([t1])
+                self.pub_tf1.publish(tfm1)
+            
+            
+            for i in range(len(self.XYZ["yellow"])):
+            
+                t = geometry_msgs.msg.TransformStamped()
+                t.header.frame_id = "camera_depth_frame2"
+                t.header.stamp = rospy.Time.now()
+                t.child_frame_id = "fruit_yellow_1"
+                t.transform.translation.x = self.XYZ["yellow"][i][0]
+                t.transform.translation.y = self.XYZ["yellow"][i][1]
+                t.transform.translation.z = self.XYZ["yellow"][i][2]
+                t.transform.rotation.x = 0
+                t.transform.rotation.y = 0
+                t.transform.rotation.z = 0
+                t.transform.rotation.w = 1            
+                tfm = tf2_msgs.msg.TFMessage([t])
+                self.pub_tf.publish(tfm)
+
+            
 
     def mask(self, frame, lower, upper):
     
@@ -189,10 +206,12 @@ class PercepStack():
         
         red_mask_center, red_mask_radius = self.mask(rgb_image, self.red_mask_lower, self.red_mask_upper)
         yellow_mask_center, yellow_mask_radius = self.mask(rgb_image, self.yellow_mask_lower, self.yellow_mask_upper)
-
+        pose={}
+        pose["red"]=red_mask_center
+        pose["yellow"]=yellow_mask_center
         #print("red: ", red_mask_center)
         #print("Yellow: ",yellow_mask_center)
-        pose = red_mask_center + yellow_mask_center    
+        #pose = red_mask_center + yellow_mask_center    
 
         for i in range(len(red_mask_center)) :
             cv2.circle(rgb_image, (int(red_mask_center[i][0]), int(red_mask_center[i][1])), int(red_mask_radius[i]),(0, 255, 255), 2)
@@ -207,15 +226,22 @@ class PercepStack():
 
     def depth_image_processing(self, pose) :
 
-        depth_val = []
+        depth_val = {"red":[],"yellow":[]}
         depth_array = np.array(self.depth_image, dtype=np.float32)
         
         #print("POSE : ", pose)
-        for i in range(len(pose)):
+        for i in range(len(pose["red"])):
             #x_center, y_center = int(pose[i][0]*(self.depth_shape[0]/self.rgb_shape[0])), int(pose[i][1]*(self.depth_shape[1]/self.rgb_shape[1]))
-            x_center, y_center = int(pose[i][0]), int(pose[i][1])
+            x_center, y_center = int(pose["red"][i][0]), int(pose["red"][i][1])
  
-            depth_val.append(depth_array[x_center, y_center])  
+            depth_val["red"].append(depth_array[x_center, y_center])  
+        
+        
+        for i in range(len(pose["yellow"])):
+            #x_center, y_center = int(pose[i][0]*(self.depth_shape[0]/self.rgb_shape[0])), int(pose[i][1]*(self.depth_shape[1]/self.rgb_shape[1]))
+            x_center, y_center = int(pose["yellow"][i][0]), int(pose["yellow"][i][1])
+ 
+            depth_val["yellow"].append(depth_array[x_center, y_center])  
 
         return depth_val
 

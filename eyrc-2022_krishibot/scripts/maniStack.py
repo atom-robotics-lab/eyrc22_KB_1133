@@ -174,6 +174,7 @@ def main():
         gripper_pose_open = [math.radians(0)]
         gripper_pose_close = [math.radians(26)]
         ms.set_joint_angles(inter_pose)
+        rospy.sleep(2)
         while True:
             transform_yellow, rot_yellow=ms.transform_pose("fruit_yellow_1")
             transform_red, rot_red=ms.transform_pose("fruit_red_1")
