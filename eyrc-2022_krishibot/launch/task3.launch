@@ -45,8 +45,8 @@
   <node pkg="eyrc-2022_krishibot" type="task3Ex" name="exeFileT3" output="screen" />
 
   <include file="$(find ur5_moveit)/launch/ur5_bringup_moveit.launch"/> 
-  <!--<node name="picknplace" pkg="eyrc-2022_krishibot" type="maniStack.py" output="screen"/>     
-  <node name="perception_script" pkg="eyrc-2022_krishibot" type="percepStack.py" output="screen"/>-->    
+  <node name="picknplace" pkg="eyrc-2022_krishibot" type="maniStack.py" output="screen"/>     
+  <node name="perception_script" pkg="eyrc-2022_krishibot" type="percepStack.py" output="screen"/>    
 
 </launch>
 <!-- ======================================================================================= -->

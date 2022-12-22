@@ -1,67 +1,46 @@
 #! /usr/bin/env python3
 
+'''
+*****************************************************************************************
+*
+*        		===============================================
+*           		Krishi Bot (KB) Theme (eYRC 2022-23)
+*        		===============================================
+*
+*  This script is to implement Task 2.2 of Krishi Bot (KB) Theme (eYRC 2022-23).
+*  
+*  This software is made available on an "AS IS WHERE IS BASIS".
+*  Licensee/end user indemnifies and will keep e-Yantra indemnified from
+*  any and all claim(s) that emanate from the use of the Software or 
+*  breach of the terms of this agreement.
+*
+*****************************************************************************************
+'''
+
+# Team ID:			[ 1133 ]
+# Author List:		[ Arjun K Haridas, Bhavay Garg , Ayan Goel , Divyansh Sharma ]
+# Filename:			percepStack.py
+# Functions:		[ mask, img_clbk, depth_clbk, image_processing, main ]
+
+
+####################### IMPORT MODULES #######################
 import rospy
-import sys
 import moveit_commander
 import moveit_msgs.msg
-import geometry_msgs.msg
 import actionlib
-import math 
+import tf2_ros
+import tf2_msgs.msg
+import geometry_msgs.msg
+import sys,math
 import tf
-from Pepper_finder import PerceptionStack
-#import tf2_ros
-#from transform_frames import TransformFrames
-from geometry_msgs.msg import Pose, Point, Quaternion, PoseArray
-from std_msgs.msg import Header
-
-from geometry_msgs.msg import Pose, Point, Quaternion, PoseArray, PoseStamped
-from std_msgs.msg import Header
-import tf2_ros, tf2_geometry_msgs
-
-
-class TransformFrames():
-    def __init__(self):
-        ''' Create a buffer of transforms and update it with TransformListener '''
-        self.tfBuffer = tf2_ros.Buffer()           # Creates a frame buffer
-        tf2_ros.TransformListener(self.tfBuffer)   # TransformListener fills the buffer as background task
-    
-    def get_transform(self, source_frame, target_frame):
-        ''' Lookup latest transform between source_frame and target_frame from the buffer '''
-        try:
-            trans = self.tfBuffer.lookup_transform(target_frame, source_frame, rospy.Time(0), rospy.Duration(0.2) )
-        except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
-            rospy.logerr(f'Cannot find transformation from {source_frame} to {target_frame}')
-            raise Exception(f'Cannot find transformation from {source_frame} to {target_frame}') from e
-        return trans     # Type: TransformStamped
-
-    def pose_transform(self, pose_array, target_frame='odom'):
-        ''' pose_array: will be transformed to target_frame '''
-        trans = self.get_transform( pose_array.header.frame_id, target_frame )
-        new_header = Header(frame_id=target_frame, stamp=pose_array.header.stamp) 
-        pose_array_transformed = PoseArray(header=new_header)
-        for pose in pose_array.poses:
-            pose_s = PoseStamped(pose=pose, header=pose_array.header)
-            pose_t = tf2_geometry_msgs.do_transform_pose(pose_s, trans)
-            pose_array_transformed.poses.append( pose_t.pose )
-        return pose_array_transformed
-
-    def get_frame_A_origin_frame_B(self, frame_A, frame_B ):
-        ''' Returns the pose of the origin of frame_A in frame_B as a PoseStamped '''
-        header = Header(frame_id=frame_A, stamp=rospy.Time(0))        
-        origin_A = Pose(position=Point(0.,0.,0.), orientation=Quaternion(0.,0.,0.,1.))
-        origin_A_stamped = PoseStamped( pose=origin_A, header=header )
-        pose_frame_B = tf2_geometry_msgs.do_transform_pose(origin_A_stamped, self.get_transform(frame_A, frame_B))
-        return pose_frame_B
+##############################################################
 
 
 
-class Ur5Moveit:
-
-    # Constructor
-    def __init__(self):
-
-        rospy.init_node('node_eg3_set_joint_angles', anonymous=True)
-
+class ManiStack:
+    def __init__(self) -> None:
+        self.tf_buffer = tf2_ros.Buffer()
+        self.listener = tf2_ros.TransformListener(self.tf_buffer)
         self._planning_group1 = "arm"
         self._planning_group2 = "gripper"
         self._commander = moveit_commander.roscpp_initialize(sys.argv)
@@ -70,7 +49,9 @@ class Ur5Moveit:
         self._group1 = moveit_commander.MoveGroupCommander(self._planning_group1)
         self._group2 = moveit_commander.MoveGroupCommander(self._planning_group2)
 
-        # self._group.set_planning
+        self.pub_tf2 = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
+        self.pub_tf3 = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
+        
         self._display_trajectory_publisher = rospy.Publisher(
             '/move_group/display_planned_path', moveit_msgs.msg.DisplayTrajectory, queue_size=1)
 
@@ -96,26 +77,7 @@ class Ur5Moveit:
             '\033[94m' + "Group Names: {}".format(self._group_names1) + '\033[0m')
 
         rospy.loginfo('\033[94m' + " >>> Ur5Moveit init done." + '\033[0m')
-
-    def go_to_predefined_pose(self, arg_pose_name, group_id):
-
-        group = None
-        if group_id==1 :
-            group = self._group1
-        else:
-            group = self._group2
-
-        rospy.loginfo('\033[94m' + "Going to Pose: {}".format(arg_pose_name) + '\033[0m')
-        group.set_named_target(arg_pose_name)
-        plan = group.plan()
-        goal = moveit_msgs.msg.ExecuteTrajectoryGoal()
-        try:
-            goal.trajectory = plan[1]
-        except:
-           goal.trajectory = plan
-        self._exectute_trajectory_client.send_goal(goal)
-        self._exectute_trajectory_client.wait_for_result()
-        rospy.loginfo('\033[94m' + "Now at Pose: {}".format(arg_pose_name) + '\033[0m')
+    
 
     def go_to_pose(self, arg_pose):
 
@@ -128,13 +90,16 @@ class Ur5Moveit:
         flag_plan = self._group1.go(wait=True)  # wait=False for Async Move
 
         pose_values = self._group1.get_current_pose().pose
-        rospy.loginfo('\033[94m' + ">>> Final Pose:" + '\033[0m')
-        rospy.loginfo(pose_values)
+        # rospy.loginfo('\033[94m' + ">>> Final Pose:" + '\033[0m')
+        # rospy.loginfo(pose_values)
 
         list_joint_values = self._group1.get_current_joint_values()
-        rospy.loginfo('\033[94m' + ">>> Final Joint Values:" + '\033[0m')
-        rospy.loginfo(list_joint_values)
+        # rospy.loginfo('\033[94m' + ">>> Final Joint Values:" + '\033[0m')
+        # rospy.loginfo(list_joint_values)
         plan = self._group1.plan()
+
+        #if not plan.joint_trajectory.points :
+            #rospy.logerr("Unreachable pose coordinates")
 
         if (flag_plan == True):
             rospy.loginfo(
@@ -144,6 +109,7 @@ class Ur5Moveit:
                 '\033[94m' + ">>> go_to_pose() Failed. Solution for Pose not Found." + '\033[0m')
 
         return flag_plan
+
     def set_joint_angles(self, arg_list_joint_angles):
 
         list_joint_values = self._group1.get_current_joint_values()
@@ -161,94 +127,155 @@ class Ur5Moveit:
         pose_values = self._group1.get_current_pose().pose
         rospy.loginfo('\033[94m' + ">>> Final Pose:" + '\033[0m')
         rospy.loginfo(pose_values)   
+    
+    def set_joint_angle_1(self, arg_list_joint_angles):
+
+        list_joint_values = self._group2.get_current_joint_values()
+        rospy.loginfo('\033[94m' + ">>> Current Joint Values:" + '\033[0m')
+        rospy.loginfo(list_joint_values)
+
+        self._group2.set_joint_value_target(arg_list_joint_angles)
+        self._group2.plan()
+        flag_plan = self._group2.go(wait=True)
+
+        list_joint_values = self._group2.get_current_joint_values()
+        rospy.loginfo('\033[94m' + ">>> Final Joint Values:" + '\033[0m')
+        rospy.loginfo(list_joint_values)
+
+        pose_values = self._group1.get_current_pose().pose
+        rospy.loginfo('\033[94m' + ">>> Final Pose:" + '\033[0m')
+        rospy.loginfo(pose_values)  
+    
+    def transform_pose(self, src):
+        # self.listener.waitForTransform("ebot_base" , "pepper" , rospy.Time() , rospy.Duration(4.0))
+        rospy.loginfo("in the transform function")
+        transform = []
+        #trans = self.tf_buffer.lookup_transform('ebot_base' , 'fruit_red' , rospy.Time())
+        listener = tf.TransformListener()
+        listener.waitForTransform("ebot_base", src, rospy.Time(), rospy.Duration(4.0))
+        (trans, rot) = listener.lookupTransform('ebot_base', src,rospy.Time())
 
 
-    # def go_to_predefined_pose(self, arg_pose_name):
-    #     rospy.loginfo('\033[94m' + "Going to Pose: {}".format(arg_pose_name) + '\033[0m')
-    #     self._group2.set_named_target(arg_pose_name)
-    #     plan = self._group2.plan()
-    #     goal = moveit_msgs.msg.ExecuteTrajectoryGoal()
-    #     goal.trajectory = plan
-    #     self._exectute_trajectory_client.send_goal(goal)
-    #     self._exectute_trajectory_client.wait_for_result()
-    #     rospy.loginfo('\033[94m' + "Now at Pose: {}".format(arg_pose_name) + '\033[0m')
+        print("TRANSFORM :" , trans, rot)
 
-    # Destructor
-    def __del__(self):
-        moveit_commander.roscpp_shutdown()
-        rospy.loginfo(
-            '\033[94m' + "Object of class Ur5Moveit Deleted." + '\033[0m')
-
-
-
-def find_transforms(pose, depth_val) :
-    transforms = []
-    fx, fy = [554.3827128226441, 554.3827128226441]
-    cx, cy = [320.5, 240.5]
-
-    tf = TransformFrames()
-    pose_array = PoseArray(header=Header(frame_id = "camera_depth_frame2", stamp = rospy.Time(0)))
-
-
-    for i in range(len(pose)) :
-        current_pose, current_depth = pose[i], depth_val[i]
-
-        X = current_depth * ((current_pose[0]-cx)/fx)
-        Y = current_depth * ((current_pose[1]-cy)/fy)
-        Z = current_depth
-
-        pose_array.poses.append(Pose(position = Point(X, Y, Z)))
-
-        #transforms.append([X,Y,Z])
-
-    transforms = tf.pose_transform(pose_array, "ebot_base")
-
-    return transforms
+        return trans, rot
 
 
 def main():
-    
-    ur5 = Ur5Moveit()
-    ps = PerceptionStack() 
+    rospy.init_node("peppercatcher", anonymous=True)
+    try:
+        ms = ManiStack()
+        detect_pose = [math.radians(100),math.radians(-25),math.radians(-54),math.radians(82),math.radians(-7),math.radians(0)]
+        inter_pose =  [math.radians(-257),math.radians(-23),math.radians(-60),math.radians(86),math.radians(0),math.radians(-1)]
 
-    #detect_pose = [math.radians(100),math.radians(-25),math.radians(-54),math.radians(82),math.radians(-7),math.radians(0)]
-
-    detect_pose = geometry_msgs.msg.Pose()
-    detect_pose.position.x = 0.109
-    detect_pose.position.y = -0.343
-    detect_pose.position.z = 1.05
-
-    detect_pose.orientation.x = -0.147
-    detect_pose.orientation.y = 0.988
-    detect_pose.orientation.z = -0.026
-    detect_pose.orientation.w = 0.000
-
-
-    
-   
-    while not rospy.is_shutdown():        
-        
-        ur5.go_to_pose(detect_pose)
-        rospy.sleep(3)
-        pose = ps.rgb_image_processing()
-        depth_val = ps.depth_image_processing(pose)
-
-        transforms = find_transforms(pose, depth_val)
-        #print("TRANSFORMS  :", transforms)
-
-        for i in range(len(transforms.poses)) :
-            while True :
-                ur5.go_to_pose(transforms.poses[i])
-                #ur5.go_to_pose([])
-
-        
-        
-    del ur5
+        inter_pose2 =  [math.radians(-257),math.radians(-23),math.radians(-60),math.radians(86),math.radians(0),math.radians(90)]
+        yellow_drop = [math.radians(9),math.radians(-7),math.radians(3),math.radians(-1),math.radians(-2),math.radians(0)]
+        red_drop_1 = [math.radians(-31),math.radians(-7),math.radians(3),math.radians(-1),math.radians(-2),math.radians(0)]
+        gripper_pose_open = [math.radians(0)]
+        gripper_pose_close = [math.radians(26)]
+        ms.set_joint_angles(inter_pose)
+        while True:
+            transform_yellow, rot_yellow=ms.transform_pose("fruit_yellow_1")
+            transform_red, rot_red=ms.transform_pose("fruit_red_1")
+            if len(transform_red)==0 or len(transform_yellow)==0:
+                continue
+            rospy.sleep(2)
+            t2 = geometry_msgs.msg.TransformStamped()
+            t2.header.frame_id = "ebot_base"
+            t2.header.stamp = rospy.Time.now()
+            t2.child_frame_id = "fruit_red"
+            t2.transform.translation.x = round(transform_red[0] ,2 ) + 0.09
+            t2.transform.translation.y = round(transform_red[1] ,2 ) - 0.04
+            t2.transform.translation.z = round(transform_red[2] ,2 ) + 0.24
+            t2.transform.rotation.x = 0
+            t2.transform.rotation.y = 0
+            t2.transform.rotation.z = 0
+            t2.transform.rotation.w = 1            
+            tfm2 = tf2_msgs.msg.TFMessage([t2])
+            ms.pub_tf2.publish(tfm2)
 
 
-if __name__ == '__main__':
+            red_pose_interpose = geometry_msgs.msg.Pose()
+            red_pose_interpose.position.x = round(transform_red[0] ,2 ) + 0.08
+            red_pose_interpose.position.y = round(transform_red[1] ,2 ) - 0.40
+            red_pose_interpose.position.z = round(transform_red[2] ,2 ) + 0.24
 
-    #rospy.init_node('manistack')
-    
+
+
+            red_pose = geometry_msgs.msg.Pose()
+            red_pose.position.x = round(transform_red[0] ,2 ) + 0.08 
+            red_pose.position.y = round(transform_red[1] ,2 ) - 0.35
+            red_pose.position.z = round(transform_red[2] ,2 ) + 0.24
+
+            t3 = geometry_msgs.msg.TransformStamped()
+            t3.header.frame_id = "ebot_base"
+            t3.header.stamp = rospy.Time.now()
+            t3.child_frame_id = "fruit_yellow"
+            t3.transform.translation.x = round(transform_yellow[0] ,2 ) + 0.21 
+            t3.transform.translation.y = round(transform_yellow[1] ,2 ) + 0.15 
+            t3.transform.translation.z = round(transform_yellow[2] ,2 ) + 0.01 
+            t3.transform.rotation.x = 0
+            t3.transform.rotation.y = 0
+            t3.transform.rotation.z = 0
+            t3.transform.rotation.w = 1            
+            tfm3 = tf2_msgs.msg.TFMessage([t3])
+            ms.pub_tf3.publish(tfm3)
+
+            yellow_pose = geometry_msgs.msg.Pose()
+            yellow_pose.position.x = round(transform_yellow[0] ,2 ) + 0.19
+            yellow_pose.position.y = round(transform_yellow[1] ,2 ) - 0.15
+            yellow_pose.position.z = round(transform_yellow[2] ,2 ) + 0.01
+
+            yellow_inter_pose = geometry_msgs.msg.Pose()
+            yellow_inter_pose.position.x = round(transform_yellow[0] ,2 ) + 0.19
+            yellow_inter_pose.position.y = round(transform_yellow[1] ,2 ) - 0.30
+            yellow_inter_pose.position.z = round(transform_yellow[2] ,2 ) + 0.01
+
+            print(detect_pose)    
+
+            rospy.loginfo("Trying to go to the pose")
+
+            flag1 = False 
+            attempt = 0 
+            attempt2 = 0
+            flag2 = False
+
+            while not flag1 and attempt < 11 :
+                if attempt < 6:
+                    first_pose = ms.go_to_pose(yellow_inter_pose)
+                    attempt += 1
+                    # rospy.loginfo("Unable to reach")
+                if attempt >= 6 and  attempt < 11:
+                    flag1 = ms.go_to_pose(yellow_pose)
+                    attempt += 1
+                    rospy.loginfo("Reached the Pose")
+                    rospy.loginfo(attempt)
+            
+            ms.set_joint_angle_1(gripper_pose_close)
+            ms.set_joint_angles(yellow_drop) 
+            ms.set_joint_angle_1(gripper_pose_open)
+            ms.set_joint_angles(inter_pose2)
+            
+            while not flag2 and attempt2 < 11 :
+
+                rospy.loginfo("going to the red pose ")
+                if attempt2 < 6:
+                    second_pose = ms.go_to_pose(red_pose_interpose)
+                    attempt2 += 1
+
+                if attempt2 >= 6 and attempt2 < 11 :
+                    flag2 = ms.go_to_pose(red_pose)
+                    attempt2 += 1 
+
+            ms.set_joint_angle_1(gripper_pose_close)
+            ms.set_joint_angles(red_drop_1) 
+            ms.set_joint_angle_1(gripper_pose_open)
+            ms.set_joint_angles(inter_pose2)   
+            
+    except Exception as e:
+        print("Error:", str(e))    
+
+
+if __name__=="__main__" :
     main()
-
+    rospy.spin()
