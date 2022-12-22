@@ -122,11 +122,11 @@
     </scene>
     <include>
       <uri>model://KB_Greenhouse</uri>
-      <pose>7.2 -1.16 -0.03 0 0 -1.57</pose>
+      <pose>7.2 -1.16 -0.13 0 0 -1.57</pose>
 	</include>
     <include>
       <uri>model://KB_Greenhouse_Ground</uri>
-      <pose>5.2 -0.3 0.155 0 0 -1.57</pose>
+      <pose>5.2 -0.3 -0.1 0 0 -1.57</pose>
 	</include>
 
 	<include> 
@@ -138,7 +138,7 @@
     <include>
 	  	<uri>model://start_zone</uri>
 		  <name>start_zone</name>
-		  <pose>0 0 0.07 0 0 0</pose>
+		  <pose>0 0 0 0 0 0</pose>
     </include>
 
 	<include>
