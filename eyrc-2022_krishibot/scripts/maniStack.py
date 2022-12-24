@@ -147,19 +147,21 @@ class ManiStack:
         rospy.loginfo(pose_values)  
     
     def transform_pose(self, src):
-        # self.listener.waitForTransform("ebot_base" , "pepper" , rospy.Time() , rospy.Duration(4.0))
-        rospy.loginfo("in the transform function")
-        transform = []
-        #trans = self.tf_buffer.lookup_transform('ebot_base' , 'fruit_red' , rospy.Time())
-        listener = tf.TransformListener()
-        listener.waitForTransform("ebot_base", src, rospy.Time(), rospy.Duration(4.0))
-        (trans, rot) = listener.lookupTransform('ebot_base', src,rospy.Time())
+        try:
+            # self.listener.waitForTransform("ebot_base" , "pepper" , rospy.Time() , rospy.Duration(4.0))
+            rospy.loginfo("in the transform function")
+            transform = []
+            #trans = self.tf_buffer.lookup_transform('ebot_base' , 'fruit_red' , rospy.Time())
+            listener = tf.TransformListener()
+            listener.waitForTransform("ebot_base", src, rospy.Time(), rospy.Duration(4.0))
+            (trans, rot) = listener.lookupTransform('ebot_base', src,rospy.Time())
 
 
-        print("TRANSFORM :" , trans, rot)
+            print("TRANSFORM :" , trans, rot)
 
-        return trans, rot
-
+            return trans, rot
+        except:
+            return [],[]
 
 def main():
     rospy.init_node("peppercatcher", anonymous=True)
@@ -178,100 +180,97 @@ def main():
         while True:
             transform_yellow, rot_yellow=ms.transform_pose("fruit_yellow_1")
             transform_red, rot_red=ms.transform_pose("fruit_red_1")
-            if len(transform_red)==0 or len(transform_yellow)==0:
-                continue
-            rospy.sleep(2)
-            t2 = geometry_msgs.msg.TransformStamped()
-            t2.header.frame_id = "ebot_base"
-            t2.header.stamp = rospy.Time.now()
-            t2.child_frame_id = "fruit_red"
-            t2.transform.translation.x = round(transform_red[0] ,2 ) + 0.09
-            t2.transform.translation.y = round(transform_red[1] ,2 ) - 0.04
-            t2.transform.translation.z = round(transform_red[2] ,2 ) + 0.24
-            t2.transform.rotation.x = 0
-            t2.transform.rotation.y = 0
-            t2.transform.rotation.z = 0
-            t2.transform.rotation.w = 1            
-            tfm2 = tf2_msgs.msg.TFMessage([t2])
-            ms.pub_tf2.publish(tfm2)
+            if len(transform_red)!=0:
+                t2 = geometry_msgs.msg.TransformStamped()
+                t2.header.frame_id = "ebot_base"
+                t2.header.stamp = rospy.Time.now()
+                t2.child_frame_id = "fruit_red"
+                t2.transform.translation.x = round(transform_red[0] ,2 ) + 0.09
+                t2.transform.translation.y = round(transform_red[1] ,2 ) - 0.04
+                t2.transform.translation.z = round(transform_red[2] ,2 ) + 0.24
+                t2.transform.rotation.x = 0
+                t2.transform.rotation.y = 0
+                t2.transform.rotation.z = 0
+                t2.transform.rotation.w = 1            
+                tfm2 = tf2_msgs.msg.TFMessage([t2])
+                ms.pub_tf2.publish(tfm2)
 
+                red_pose_interpose = geometry_msgs.msg.Pose()
+                red_pose_interpose.position.x = round(transform_red[0] ,2 ) + 0.08
+                red_pose_interpose.position.y = round(transform_red[1] ,2 ) - 0.40
+                red_pose_interpose.position.z = round(transform_red[2] ,2 ) + 0.24
 
-            red_pose_interpose = geometry_msgs.msg.Pose()
-            red_pose_interpose.position.x = round(transform_red[0] ,2 ) + 0.08
-            red_pose_interpose.position.y = round(transform_red[1] ,2 ) - 0.40
-            red_pose_interpose.position.z = round(transform_red[2] ,2 ) + 0.24
+                red_pose = geometry_msgs.msg.Pose()
+                red_pose.position.x = round(transform_red[0] ,2 ) + 0.08 
+                red_pose.position.y = round(transform_red[1] ,2 ) - 0.35
+                red_pose.position.z = round(transform_red[2] ,2 ) + 0.24
 
-
-
-            red_pose = geometry_msgs.msg.Pose()
-            red_pose.position.x = round(transform_red[0] ,2 ) + 0.08 
-            red_pose.position.y = round(transform_red[1] ,2 ) - 0.35
-            red_pose.position.z = round(transform_red[2] ,2 ) + 0.24
-
-            t3 = geometry_msgs.msg.TransformStamped()
-            t3.header.frame_id = "ebot_base"
-            t3.header.stamp = rospy.Time.now()
-            t3.child_frame_id = "fruit_yellow"
-            t3.transform.translation.x = round(transform_yellow[0] ,2 ) + 0.21 
-            t3.transform.translation.y = round(transform_yellow[1] ,2 ) + 0.15 
-            t3.transform.translation.z = round(transform_yellow[2] ,2 ) + 0.01 
-            t3.transform.rotation.x = 0
-            t3.transform.rotation.y = 0
-            t3.transform.rotation.z = 0
-            t3.transform.rotation.w = 1            
-            tfm3 = tf2_msgs.msg.TFMessage([t3])
-            ms.pub_tf3.publish(tfm3)
-
-            yellow_pose = geometry_msgs.msg.Pose()
-            yellow_pose.position.x = round(transform_yellow[0] ,2 ) + 0.19
-            yellow_pose.position.y = round(transform_yellow[1] ,2 ) - 0.15
-            yellow_pose.position.z = round(transform_yellow[2] ,2 ) + 0.01
-
-            yellow_inter_pose = geometry_msgs.msg.Pose()
-            yellow_inter_pose.position.x = round(transform_yellow[0] ,2 ) + 0.19
-            yellow_inter_pose.position.y = round(transform_yellow[1] ,2 ) - 0.30
-            yellow_inter_pose.position.z = round(transform_yellow[2] ,2 ) + 0.01
-
-            print(detect_pose)    
-
-            rospy.loginfo("Trying to go to the pose")
-
-            flag1 = False 
-            attempt = 0 
-            attempt2 = 0
-            flag2 = False
-
-            while not flag1 and attempt < 11 :
-                if attempt < 6:
-                    first_pose = ms.go_to_pose(yellow_inter_pose)
-                    attempt += 1
-                    # rospy.loginfo("Unable to reach")
-                if attempt >= 6 and  attempt < 11:
-                    flag1 = ms.go_to_pose(yellow_pose)
-                    attempt += 1
-                    rospy.loginfo("Reached the Pose")
-                    rospy.loginfo(attempt)
             
-            ms.set_joint_angle_1(gripper_pose_close)
-            ms.set_joint_angles(yellow_drop) 
-            ms.set_joint_angle_1(gripper_pose_open)
-            ms.set_joint_angles(inter_pose2)
-            
-            while not flag2 and attempt2 < 11 :
+            if len(transform_yellow)!=0:
+                t3 = geometry_msgs.msg.TransformStamped()
+                t3.header.frame_id = "ebot_base"
+                t3.header.stamp = rospy.Time.now()
+                t3.child_frame_id = "fruit_yellow"
+                t3.transform.translation.x = round(transform_yellow[0] ,2 ) + 0.21 
+                t3.transform.translation.y = round(transform_yellow[1] ,2 ) + 0.15 
+                t3.transform.translation.z = round(transform_yellow[2] ,2 ) + 0.01 
+                t3.transform.rotation.x = 0
+                t3.transform.rotation.y = 0
+                t3.transform.rotation.z = 0
+                t3.transform.rotation.w = 1            
+                tfm3 = tf2_msgs.msg.TFMessage([t3])
+                ms.pub_tf3.publish(tfm3)
 
-                rospy.loginfo("going to the red pose ")
-                if attempt2 < 6:
-                    second_pose = ms.go_to_pose(red_pose_interpose)
-                    attempt2 += 1
+                yellow_pose = geometry_msgs.msg.Pose()
+                yellow_pose.position.x = round(transform_yellow[0] ,2 ) + 0.19
+                yellow_pose.position.y = round(transform_yellow[1] ,2 ) - 0.15
+                yellow_pose.position.z = round(transform_yellow[2] ,2 ) + 0.01
 
-                if attempt2 >= 6 and attempt2 < 11 :
-                    flag2 = ms.go_to_pose(red_pose)
-                    attempt2 += 1 
+                yellow_inter_pose = geometry_msgs.msg.Pose()
+                yellow_inter_pose.position.x = round(transform_yellow[0] ,2 ) + 0.19
+                yellow_inter_pose.position.y = round(transform_yellow[1] ,2 ) - 0.30
+                yellow_inter_pose.position.z = round(transform_yellow[2] ,2 ) + 0.01
 
-            ms.set_joint_angle_1(gripper_pose_close)
-            ms.set_joint_angles(red_drop_1) 
-            ms.set_joint_angle_1(gripper_pose_open)
-            ms.set_joint_angles(inter_pose2)   
+                print(detect_pose)    
+
+                rospy.loginfo("Trying to go to the pose")
+
+                flag1 = False 
+                attempt = 0 
+                attempt2 = 0
+                flag2 = False
+
+                while not flag1 and attempt < 11 :
+                    if attempt < 6:
+                        first_pose = ms.go_to_pose(yellow_inter_pose)
+                        attempt += 1
+                        # rospy.loginfo("Unable to reach")
+                    if attempt >= 6 and  attempt < 11:
+                        flag1 = ms.go_to_pose(yellow_pose)
+                        attempt += 1
+                        rospy.loginfo("Reached the Pose")
+                        rospy.loginfo(attempt)
+                
+                ms.set_joint_angle_1(gripper_pose_close)
+                ms.set_joint_angles(yellow_drop) 
+                ms.set_joint_angle_1(gripper_pose_open)
+                ms.set_joint_angles(inter_pose2)
+                
+                while not flag2 and attempt2 < 11 :
+
+                    rospy.loginfo("going to the red pose ")
+                    if attempt2 < 6:
+                        second_pose = ms.go_to_pose(red_pose_interpose)
+                        attempt2 += 1
+
+                    if attempt2 >= 6 and attempt2 < 11 :
+                        flag2 = ms.go_to_pose(red_pose)
+                        attempt2 += 1 
+
+                ms.set_joint_angle_1(gripper_pose_close)
+                ms.set_joint_angles(red_drop_1) 
+                ms.set_joint_angle_1(gripper_pose_open)
+                ms.set_joint_angles(inter_pose2)   
             
     except Exception as e:
         print("Error:", str(e))    
