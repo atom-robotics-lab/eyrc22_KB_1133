@@ -58,6 +58,7 @@ class PercepStack():
         self.pub=rospy.Publisher('/pepper', String, queue_size = 1)
         self.yellow_pub=rospy.Publisher('/fruit_yellow', String, queue_size = 1)
         self.red_pub=rospy.Publisher('/fruit_red', String, queue_size = 1)
+        self.found_pub=rospy.Publisher('/found', String, queue_size = 1)
         
         self.rgb_image, self.depth_image = None, None
         self.rgb_shape, self.depth_shape = None, None
@@ -121,6 +122,7 @@ class PercepStack():
         l=len(self.XYZ["red"])+len(self.XYZ["yellow"])
         if l>=1:
             self.found=True
+            self.found_pub.publish("Stop")
         else:
             self.found=False
 
