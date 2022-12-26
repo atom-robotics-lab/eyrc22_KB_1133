@@ -235,14 +235,16 @@ class PercepStack():
         for i in range(len(pose["red"])):
             #x_center, y_center = int(pose[i][0]*(self.depth_shape[0]/self.rgb_shape[0])), int(pose[i][1]*(self.depth_shape[1]/self.rgb_shape[1]))
             x_center, y_center = int(pose["red"][i][0]), int(pose["red"][i][1])
- 
+            if depth_array[x_center, y_center] >1:
+                continue
             depth_val["red"].append(depth_array[x_center, y_center])  
         
         
         for i in range(len(pose["yellow"])):
             #x_center, y_center = int(pose[i][0]*(self.depth_shape[0]/self.rgb_shape[0])), int(pose[i][1]*(self.depth_shape[1]/self.rgb_shape[1]))
             x_center, y_center = int(pose["yellow"][i][0]), int(pose["yellow"][i][1])
- 
+            if depth_array[x_center, y_center] >1:
+                continue
             depth_val["yellow"].append(depth_array[x_center, y_center])  
 
         return depth_val
