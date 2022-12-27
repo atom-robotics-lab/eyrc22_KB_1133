@@ -87,6 +87,7 @@ class PercepStack():
         #pose_array = PoseArray(header=Header(frame_id = "camera_depth_frame2", stamp = rospy.Time(0)))
 
         X , Y , Z = 0 , 0, 0
+        print(len(pose["red"]),len(depth_val["red"]))
         for i in range(len(pose["red"])) :
             current_pose, current_depth = pose["red"][i], depth_val["red"][i]
             X = current_depth * ((current_pose[0]-cx)/fx)
@@ -231,21 +232,28 @@ class PercepStack():
         depth_val = {"red":[],"yellow":[]}
         depth_array = np.array(self.depth_image, dtype=np.float32)
         
+        invalid=[]
         #print("POSE : ", pose)
         for i in range(len(pose["red"])):
             #x_center, y_center = int(pose[i][0]*(self.depth_shape[0]/self.rgb_shape[0])), int(pose[i][1]*(self.depth_shape[1]/self.rgb_shape[1]))
             x_center, y_center = int(pose["red"][i][0]), int(pose["red"][i][1])
-            if depth_array[x_center, y_center] >1:
-                continue
-            depth_val["red"].append(depth_array[x_center, y_center])  
+            if depth_array[x_center, y_center] <=1:
+                depth_val["red"].append(depth_array[x_center, y_center])  
+            else:
+                invalid.append(pose["red"][i])
+        for i in invalid:
+            pose["red"].remove(i)
         
-        
+        invalid=[]
         for i in range(len(pose["yellow"])):
             #x_center, y_center = int(pose[i][0]*(self.depth_shape[0]/self.rgb_shape[0])), int(pose[i][1]*(self.depth_shape[1]/self.rgb_shape[1]))
             x_center, y_center = int(pose["yellow"][i][0]), int(pose["yellow"][i][1])
-            if depth_array[x_center, y_center] >1:
-                continue
-            depth_val["yellow"].append(depth_array[x_center, y_center])  
+            if depth_array[x_center, y_center] <=1:
+                depth_val["yellow"].append(depth_array[x_center, y_center]) 
+            else:
+                invalid.append(pose["yellow"][i]) 
+        for i in invalid:
+            pose["yellow"].remove(i)
 
         return depth_val
 
