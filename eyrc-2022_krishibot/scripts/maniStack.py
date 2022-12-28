@@ -31,6 +31,7 @@ import actionlib
 import tf2_ros
 import tf2_msgs.msg
 import geometry_msgs.msg
+from std_msgs.msg import String
 import sys,math
 import tf
 ##############################################################
@@ -51,7 +52,8 @@ class ManiStack:
 
         self.pub_tf2 = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
         self.pub_tf3 = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
-        
+        self.found_pub=rospy.Publisher('/found', String, queue_size = 1)
+                
         self._display_trajectory_publisher = rospy.Publisher(
             '/move_group/display_planned_path', moveit_msgs.msg.DisplayTrajectory, queue_size=1)
 
@@ -205,6 +207,25 @@ def main():
                 red_pose.position.y = round(transform_red[1] ,2 ) - 0.35
                 red_pose.position.z = round(transform_red[2] ,2 ) + 0.24
 
+                attempt2 = 0
+                flag2 = False
+                while not flag2 and attempt2 < 11 :
+
+                    rospy.loginfo("going to the red pose ")
+                    if attempt2 < 6:
+                        second_pose = ms.go_to_pose(red_pose_interpose)
+                        attempt2 += 1
+
+                    if attempt2 >= 6 and attempt2 < 11 :
+                        flag2 = ms.go_to_pose(red_pose)
+                        attempt2 += 1 
+
+                ms.set_joint_angle_1(gripper_pose_close)
+                ms.set_joint_angles(red_drop_1) 
+                ms.set_joint_angle_1(gripper_pose_open)
+                ms.set_joint_angles(inter_pose2)
+                ms.found_pub.publish("Move")  
+
             
             if len(transform_yellow)!=0:
                 t3 = geometry_msgs.msg.TransformStamped()
@@ -237,8 +258,6 @@ def main():
 
                 flag1 = False 
                 attempt = 0 
-                attempt2 = 0
-                flag2 = False
 
                 while not flag1 and attempt < 11 :
                     if attempt < 6:
@@ -255,23 +274,9 @@ def main():
                 ms.set_joint_angles(yellow_drop) 
                 ms.set_joint_angle_1(gripper_pose_open)
                 ms.set_joint_angles(inter_pose2)
+                ms.found_pub.publish("Move")
                 
-                while not flag2 and attempt2 < 11 :
-
-                    rospy.loginfo("going to the red pose ")
-                    if attempt2 < 6:
-                        second_pose = ms.go_to_pose(red_pose_interpose)
-                        attempt2 += 1
-
-                    if attempt2 >= 6 and attempt2 < 11 :
-                        flag2 = ms.go_to_pose(red_pose)
-                        attempt2 += 1 
-
-                ms.set_joint_angle_1(gripper_pose_close)
-                ms.set_joint_angles(red_drop_1) 
-                ms.set_joint_angle_1(gripper_pose_open)
-                ms.set_joint_angles(inter_pose2)   
-            
+                            
     except Exception as e:
         print("Error:", str(e))    
 
