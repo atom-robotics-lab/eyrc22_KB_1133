@@ -90,8 +90,8 @@ class PercepStack():
         print(len(pose["red"]),len(depth_val["red"]))
         for i in range(len(pose["red"])) :
             current_pose, current_depth = pose["red"][i], depth_val["red"][i]
-            X = current_depth * ((current_pose[0]-cx)/fx)
-            Y = current_depth * ((current_pose[1]-cy)/fy)
+            X = current_depth * ((current_pose[1]-cx)/fx)
+            Y = current_depth * ((current_pose[0]-cy)/fy)
             Z = current_depth
             #print(X , Y , Z )
             transforms["red"].append([X,Y,Z])
@@ -99,8 +99,8 @@ class PercepStack():
         X , Y , Z = 0 , 0, 0
         for i in range(len(pose["yellow"])) :
             current_pose, current_depth = pose["yellow"][i], depth_val["yellow"][i]
-            X = current_depth * ((current_pose[0]-cx)/fx)
-            Y = current_depth * ((current_pose[1]-cy)/fy)
+            X = current_depth * ((current_pose[1]-cx)/fx)
+            Y = current_depth * ((current_pose[0]-cy)/fy)
             Z = current_depth
             #print(X , Y , Z )
             transforms["yellow"].append([X,Y,Z])
@@ -194,9 +194,9 @@ class PercepStack():
             if radius > 10:
                 obj_radius.append(radius)
                 obj_center.append(list(center[::-1]))
-        #cv2.circle(frame,obj_center[0],30,(0,0,255),2)
-        #cv2.imshow("Frame",frame)
-        #cv2.waitKey(1)
+            # cv2.circle(frame,obj_center[0],30,(0,0,255),2)
+            # cv2.imshow("Frame",frame)
+            # cv2.waitKey(1)
         return [obj_center,obj_radius]
 
 
@@ -212,8 +212,8 @@ class PercepStack():
         pose={}
         pose["red"]=red_mask_center
         pose["yellow"]=yellow_mask_center
-        #print("red: ", red_mask_center)
-        #print("Yellow: ",yellow_mask_center)
+        print("red: ", pose["red"])
+        print("Yellow: ",pose["yellow"])
         #pose = red_mask_center + yellow_mask_center    
 
         for i in range(len(red_mask_center)) :
