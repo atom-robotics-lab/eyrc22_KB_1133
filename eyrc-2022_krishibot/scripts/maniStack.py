@@ -180,7 +180,7 @@ def main():
 
         inter_pose2 =  [math.radians(-257),math.radians(-23),math.radians(-60),math.radians(86),math.radians(0),math.radians(90)]
 
-        inter_pose_1=  [math.radians(-88),math.radians(-23),math.radians(-60),math.radians(86),math.radians(0),math.radians(-1)]
+        inter_pose_1=  [math.radians(-88),math.radians(-3),math.radians(-37),math.radians(37),math.radians(0),math.radians(-1)]
 
         inter_pose2_1=  [math.radians(-288),math.radians(-23),math.radians(-60),math.radians(86),math.radians(0),math.radians(90)]
 

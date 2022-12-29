@@ -24,7 +24,8 @@ class Object_Avoider:
             1: 'turn left',
             2: 'follow the wall',
             3 : 'turn right',
-            4 : 'rotate_left'
+            4 : 'rotate_left',
+            5 : 'Stop'
         }
 
         self.message = Twist()
@@ -45,14 +46,25 @@ class Object_Avoider:
         self.flag_turning2 = False
 
         self.flag_turn2_stage = 0
+
+
         self.pepper_sub = rospy.Subscriber("/found" , String , self.callback)
         self.plucked = rospy.Subscriber("/pluck_pub" , String , self.callback_pluck)
-        self.pepper = "Move"
+        self.value = 0
+
     def callback(self,data):
         self.pepper = data.data
 
+        if self.pepper == "Stop":
+            self.value = 1
+        elif self.pepper == "" :
+            self.value = -1
+        else :
+            self.value = 0
+
     def callback_pluck(self,data):
         self.pluck = data.data
+
 
     def clbk_laser(self, msg):
         
@@ -72,7 +84,14 @@ class Object_Avoider:
         if self.regions['left'] < 2 and self.regions['right'] <2 :
             self.flag_follow_wall = True
 
-        self.take_action()
+        if self.value == 0 :
+            rospy.loginfo("Default")
+            self.take_action()
+        elif self.value == 1 :
+            rospy.loginfo("got pepper")
+            self.change_state(5)
+        else :
+            rospy.loginfo("Blank")
         
 
     def change_state(self, state):
@@ -88,14 +107,8 @@ class Object_Avoider:
 
     def take_action(self):
 
-        if self.pepper == "Stop":
 
-            self.move(0,0)
-            rospy.loginfo("Pluck info")
-            while self.pepper!="Move":
-                self.change_state(2)
-
-        elif self.regions['left'] > 2 and self.regions['right'] > 2 and self.flag_initial_start:
+        if self.regions['left'] > 2 and self.regions['right'] > 2 and self.flag_initial_start:
             print("Initial Start")
             self.change_state(2)       
             rospy.loginfo("pehla elif")
@@ -200,6 +213,8 @@ class Object_Avoider:
         print("Minor Left")
 
     def stop(self):
+        self.move(0.1,-0.15)
+        self.move(0.1 , 0.15)
         self.move(0 ,0 )
         print("Stop")
 
@@ -234,6 +249,8 @@ class Object_Avoider:
                 self.turn_right()
             elif self.state_ == 4 :
                 self.rotate_left()
+            elif self.state_ == 5:
+                self.stop()
             else:
                 rospy.logerr('Unknown state!')
                         
