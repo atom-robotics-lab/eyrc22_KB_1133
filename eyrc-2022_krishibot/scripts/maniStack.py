@@ -192,9 +192,15 @@ def main():
         if arm_rotation == 0:
 
             pose = inter_pose_1
+            offset_interpose = 0.34
+            offset_pose = 0.295
+            pose_z = -1
         else :
 
             pose = inter_pose
+            offset_interpose = - 0.27
+            offset_pose = - 0.32
+            pose_z = 1
 
         ms.set_joint_angles(pose)
         rospy.sleep(2)
@@ -223,13 +229,15 @@ def main():
 
                 red_pose_interpose = geometry_msgs.msg.Pose()
                 red_pose_interpose.position.x = round(transform_red[0] ,2 ) 
-                red_pose_interpose.position.y = round(transform_red[1] ,2 ) - 0.27
+                red_pose_interpose.position.y = round(transform_red[1] ,2 ) + offset_interpose
                 red_pose_interpose.position.z = round(transform_red[2] ,2 ) - 0.01
+                red_pose_interpose.orientation.z = pose_z
 
                 red_pose = geometry_msgs.msg.Pose()
                 red_pose.position.x = round(transform_red[0] ,2 ) 
-                red_pose.position.y = round(transform_red[1] ,2 ) - 0.32
+                red_pose.position.y = round(transform_red[1] ,2 ) + offset_pose
                 red_pose.position.z = round(transform_red[2] ,2 ) - 0.01
+                red_pose.orientation.z = pose_z
 
                 while not flag2 and attempt2 < 11 :
 
@@ -266,13 +274,15 @@ def main():
 
                 yellow_pose = geometry_msgs.msg.Pose()
                 yellow_pose.position.x = round(transform_yellow[0] ,2 ) 
-                yellow_pose.position.y = round(transform_yellow[1] ,2 ) - 0.27
+                yellow_pose.position.y = round(transform_yellow[1] ,2 ) + offset_pose
                 yellow_pose.position.z = round(transform_yellow[2] ,2 ) - 0.01
+                yellow_pose.orientation.z = pose_z
 
                 yellow_inter_pose = geometry_msgs.msg.Pose()
                 yellow_inter_pose.position.x = round(transform_yellow[0] ,2 ) 
-                yellow_inter_pose.position.y = round(transform_yellow[1] ,2 ) - 0.32
+                yellow_inter_pose.position.y = round(transform_yellow[1] ,2 ) + offset_interpose
                 yellow_inter_pose.position.z = round(transform_yellow[2] ,2 ) - 0.01
+                yellow_inter_pose.orientation.z = pose_z
 
                 print(detect_pose)    
 
