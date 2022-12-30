@@ -54,7 +54,7 @@ class ManiStack:
 
         self.pub_tf2 = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
         self.pub_tf3 = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
-
+        self.rotate_arm = rospy.Subscriber("/arm_pose" , String , self.callback_rotate)
         self.pluck_pub=rospy.Publisher('/found', String, queue_size = 1)
         
         self._display_trajectory_publisher = rospy.Publisher(
@@ -70,7 +70,7 @@ class ManiStack:
         self._eef_link1= self._group1.get_end_effector_link()
         self._group_names1 = self._robot.get_group_names()
         self._box_name = ''
-
+        self.rotate_value = 0
         # Current State of the Robot is needed to add box to planning scene
         self._curr_state = self._robot.get_current_state()
 
@@ -83,6 +83,9 @@ class ManiStack:
 
         rospy.loginfo('\033[94m' + " >>> Ur5Moveit init done." + '\033[0m')
     
+    def callback_rotate(self , data) :
+        
+        self.rotate_value = data.data
 
     def go_to_pose(self, arg_pose):
 
@@ -95,12 +98,12 @@ class ManiStack:
         flag_plan = self._group1.go(wait=True)  # wait=False for Async Move
 
         pose_values = self._group1.get_current_pose().pose
-        # rospy.loginfo('\033[94m' + ">>> Final Pose:" + '\033[0m')
-        # rospy.loginfo(pose_values)
+        rospy.loginfo('\033[94m' + ">>> Final Pose:" + '\033[0m')
+        rospy.loginfo(pose_values)
 
         list_joint_values = self._group1.get_current_joint_values()
-        # rospy.loginfo('\033[94m' + ">>> Final Joint Values:" + '\033[0m')
-        # rospy.loginfo(list_joint_values)
+        rospy.loginfo('\033[94m' + ">>> Final Joint Values:" + '\033[0m')
+        rospy.loginfo(list_joint_values)
         plan = self._group1.plan()
 
         if (flag_plan == True):
@@ -151,7 +154,7 @@ class ManiStack:
     def transform_pose(self, src):
         try:
             # self.listener.waitForTransform("ebot_base" , "pepper" , rospy.Time() , rospy.Duration(4.0))
-            rospy.loginfo("in the transform function")
+            #rospy.loginfo("in the transform function")
             transform = []
             #trans = self.tf_buffer.lookup_transform('ebot_base' , 'fruit_red' , rospy.Time())
             listener = tf.TransformListener()
@@ -159,7 +162,7 @@ class ManiStack:
             (trans, rot) = listener.lookupTransform('ebot_base', src,rospy.Time())
 
 
-            print("TRANSFORM :" , trans, rot)
+            #print("TRANSFORM :" , trans, rot)
 
             return trans, rot
         except:
@@ -185,15 +188,15 @@ def main():
         inter_pose2_1=  [math.radians(-288),math.radians(-23),math.radians(-60),math.radians(86),math.radians(0),math.radians(90)]
 
         yellow_drop = [math.radians(9),math.radians(-7),math.radians(3),math.radians(-1),math.radians(-2),math.radians(0)]
-        red_drop_1 = [math.radians(-31),math.radians(-7),math.radians(3),math.radians(-1),math.radians(-2),math.radians(0)]
+        red_drop_1 = [math.radians(-31),math.radians(-7),math.radians(3),math.radians(-1),math.radians(-2),math.radians(40)]
         gripper_pose_open = [math.radians(0)]
         gripper_pose_close = [math.radians(26)]
 
         if arm_rotation == 0:
 
             pose = inter_pose_1
-            offset_interpose = 0.345
-            offset_pose = 0.287
+            offset_interpose = 0.33
+            offset_pose = 0.289
             pose_z = -1
         else :
 
@@ -212,7 +215,7 @@ def main():
             transform_red, rot_red=ms.transform_pose("fruit_red_1")
 
             if len(transform_red)!=0:
-
+                attempt2 = 0
                 t2 = geometry_msgs.msg.TransformStamped()
                 t2.header.frame_id = "ebot_base"
                 t2.header.stamp = rospy.Time.now()
@@ -228,20 +231,20 @@ def main():
                 ms.pub_tf2.publish(tfm2)
 
                 red_pose_interpose = geometry_msgs.msg.Pose()
-                red_pose_interpose.position.x = round(transform_red[0] ,2 ) - 0.01
+                red_pose_interpose.position.x = round(transform_red[0] ,2 ) - 0.005
                 red_pose_interpose.position.y = round(transform_red[1] ,2 ) + offset_interpose
-                red_pose_interpose.position.z = round(transform_red[2] ,2 ) 
+                red_pose_interpose.position.z = round(transform_red[2] ,2 ) - 0.01
                 red_pose_interpose.orientation.z = pose_z
 
                 red_pose = geometry_msgs.msg.Pose()
-                red_pose.position.x = round(transform_red[0] ,2 ) - 0.01
+                red_pose.position.x = round(transform_red[0] ,2 ) - 0.005
                 red_pose.position.y = round(transform_red[1] ,2 ) + offset_pose
-                red_pose.position.z = round(transform_red[2] ,2 ) 
+                red_pose.position.z = round(transform_red[2] ,2 ) - 0.01
                 red_pose.orientation.z = pose_z
 
                 while not flag2 and attempt2 < 11 :
 
-                    rospy.loginfo("going to the red pose ")
+                    #rospy.loginfo("going to the red pose ")
                     if attempt2 < 6:
                         second_pose = ms.go_to_pose(red_pose_interpose)
                         attempt2 += 1
@@ -250,16 +253,31 @@ def main():
                         flag2 = ms.go_to_pose(red_pose)
                         attempt2 += 1 
 
+                if flag2 :
+                    print("fruit_red_Plucked")
+
                 ms.set_joint_angle_1(gripper_pose_close)
                 ms.set_joint_angles(red_drop_1) 
                 ms.set_joint_angle_1(gripper_pose_open)
                 # arm_rotation = 1  
-                if arm_rotation == 0 :
-                    ms.set_joint_angles(inter_pose)
-                else :
+                if ms.rotate_value == 0 :
+
                     ms.set_joint_angles(inter_pose_1)
+
+                if ms.rotate_value == 1 :
+
+                    ms.set_joint_angles(inter_pose)
+
+                ms.set_joint_angles(inter_pose_1)
+                # if arm_rotation == 0 :
+                #     ms.set_joint_angles(inter_pose)
+                # else :
+                #     ms.set_joint_angles(inter_pose_1)
                 # ms.pluck_pub.publish("True")
                 ms.pluck_pub.publish("Move")
+
+                if flag2 :
+                    print("fruit_red Dropped in red_box")
 
             
             if len(transform_yellow)!=0:
@@ -278,20 +296,20 @@ def main():
                 ms.pub_tf3.publish(tfm3)
 
                 yellow_pose = geometry_msgs.msg.Pose()
-                yellow_pose.position.x = round(transform_yellow[0] ,2 ) - 0.01
+                yellow_pose.position.x = round(transform_yellow[0] ,2 ) + 0.01
                 yellow_pose.position.y = round(transform_yellow[1] ,2 ) + offset_pose
                 yellow_pose.position.z = round(transform_yellow[2] ,2 ) - 0.01
                 yellow_pose.orientation.z = pose_z
 
                 yellow_inter_pose = geometry_msgs.msg.Pose()
-                yellow_inter_pose.position.x = round(transform_yellow[0] ,2 ) - 0.01
+                yellow_inter_pose.position.x = round(transform_yellow[0] ,2 ) + 0.01
                 yellow_inter_pose.position.y = round(transform_yellow[1] ,2 ) + offset_interpose
                 yellow_inter_pose.position.z = round(transform_yellow[2] ,2 ) - 0.01
                 yellow_inter_pose.orientation.z = pose_z
 
-                print(detect_pose)    
+                #print(detect_pose)    
 
-                rospy.loginfo("Trying to go to the pose")
+                # rospy.loginfo("Trying to go to the pose")
 
 
 
@@ -303,15 +321,22 @@ def main():
                     if attempt >= 6 and  attempt < 11:
                         flag1 = ms.go_to_pose(yellow_pose)
                         attempt += 1
-                        rospy.loginfo("Reached the Pose")
-                        rospy.loginfo(attempt)
+                        #rospy.loginfo("Reached the Pose")
+                        #rospy.loginfo(attempt)
+
+                if flag1 :
+                    print("fruit_yellow_Plucked")
                 
                 ms.set_joint_angle_1(gripper_pose_close)
                 ms.set_joint_angles(yellow_drop) 
                 ms.set_joint_angle_1(gripper_pose_open)
                 arm_rotation = 0
+                ms.set_joint_angles(inter_pose_1)
                 # ms.pluck_pub.publish("True")
                 ms.pluck_pub.publish("Move")
+
+                if flag1 :
+                    print("fruit_yellow Dropped in yellow_box")
 
                 
             
