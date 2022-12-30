@@ -250,6 +250,10 @@ def main():
                         flag2 = ms.go_to_pose(red_pose)
                         attempt2 += 1 
 
+                if flag2 :
+                    print("fruit_red_Plucked")
+
+
                 ms.set_joint_angle_1(gripper_pose_close)
                 ms.set_joint_angles(red_drop_1) 
                 ms.set_joint_angle_1(gripper_pose_open)
@@ -260,6 +264,9 @@ def main():
                     ms.set_joint_angles(inter_pose_1)
                 # ms.pluck_pub.publish("True")
                 ms.pluck_pub.publish("Move")
+
+                if flag2 :
+                    print("fruit_red Dropped in red_box")
 
             
             if len(transform_yellow)!=0:
@@ -305,6 +312,9 @@ def main():
                         attempt += 1
                         rospy.loginfo("Reached the Pose")
                         rospy.loginfo(attempt)
+
+                if flag1 :
+                    print("fruit_yellow_Plucked")
                 
                 ms.set_joint_angle_1(gripper_pose_close)
                 ms.set_joint_angles(yellow_drop) 
@@ -312,6 +322,11 @@ def main():
                 arm_rotation = 0
                 # ms.pluck_pub.publish("True")
                 ms.pluck_pub.publish("Move")
+
+                if flag1 :
+                    print("fruit_yellow Dropped in yellow_box")
+
+                
 
                 
             
