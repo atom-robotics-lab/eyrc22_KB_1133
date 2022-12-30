@@ -25,7 +25,8 @@ class Object_Avoider:
             2: 'follow the wall',
             3 : 'turn right',
             4 : 'rotate_left',
-            5 : 'Stop'
+            5 : 'Stop',
+            6 : 'Reverse'
         }
 
         self.message = Twist()
@@ -36,12 +37,7 @@ class Object_Avoider:
         rospy.init_node('Object_Avoider')
         self.pub_ = rospy.Publisher('/cmd_vel', Twist, queue_size=1)        
         self.sub = rospy.Subscriber('ebot/laser/scan', LaserScan, self.clbk_laser)
-        self.mission_info = rospy.Publisher('/taskInfo', String , queue_size=1)
 
-        self.pose_change = rospy.Publisher('/arm_pose', String , queue_size=1)
-        self.pose_change.publish(0)
-        print("Mission Started!")
-        self.mission_info.publish("Mission Started!")
         self.flag_turn1 = True
         self.flag_follow_wall = False
         self.flag_initial_start = True
@@ -55,18 +51,29 @@ class Object_Avoider:
 
         self.pepper_sub = rospy.Subscriber("/found" , String , self.callback)
         self.plucked = rospy.Subscriber("/pluck_pub" , String , self.callback_pluck)
+        self.return_back = rospy.Subscriber("/yellow_pepper" , String , self.callback_return)
         self.value = 0
 
+        self.mission_info = rospy.Publisher('/taskInfo', String , queue_size=1)
+
+    def callback_return (self ,data):
+
+        self.return_pose = data.data
     def callback(self,data):
         self.pepper = data.data
 
-        if self.pepper == "Stop":
+        if self.pepper == "Stop" and self.return_pose == "False":
             self.value = 1
 
-        if self.pepper == "Move" :
+        if self.pepper == "Move" and self.return_pose == "False":
             self.value = 0
-        if self.pepper == "False":
+
+        if self.pepper == "False" and self.return_pose == "False":
             self.value = 0 
+
+        #if self.return_pose == "True":
+            #self.move(-0.6 , 0)
+
     def callback_pluck(self,data):
         self.pluck = data.data
 
@@ -92,11 +99,14 @@ class Object_Avoider:
         if self.value == 0 :
             #rospy.loginfo("Default")
             self.take_action()
+
         elif self.value == 1 :
             #rospy.loginfo("got pepper")
             self.change_state(5)
         else :
             rospy.loginfo("Blank")
+
+ 
         
 
     def change_state(self, state):
@@ -110,12 +120,20 @@ class Object_Avoider:
         velocity_msg.angular.z = angular 
         self.pub_.publish(velocity_msg)
 
-    def publishing_value(self):
-        self.mission_info.publish("Mission Accomplished!")
+    '''def publishing_value(self):
+        elf.mission_info.publish("Mission Accomplished!")
         print("Mission Accomplished!")
-        self.pose_change.publish(1)
+        self.pose_change.publish(1)'''
 
     def take_action(self):
+
+        if self.return_pose == "True" :
+            self.change_state(6)
+
+            if self.regions['left'] > 2 and self.regions['right'] > 2 :
+                print("Mission Accomplished!")
+                self.mission_info.publish("Mission Accomplished!")
+
 
 
         if self.regions['left'] > 2 and self.regions['right'] > 2 and self.flag_initial_start:
@@ -133,6 +151,7 @@ class Object_Avoider:
 
                 self.change_state(1)
                 self.publishing_value()
+                
             if  (self.regions['front'] > 2.1 and (self.regions['left'] < 0.67 or self.regions['fleft'] < 0.6)) or (self.regions['straight'] > 5):
                 self.flag_turn1 = False
                 self.flag_turning1 = False
@@ -221,6 +240,9 @@ class Object_Avoider:
     def turn_left_minor(self) :
         self.move(0.5, 1)
         ##print("Minor Left")
+    
+    def reverse(self) :
+        self.move(-0.6 , 0)
 
     def stop(self):
         # self.move(0.1,-0.15)
@@ -253,9 +275,7 @@ class Object_Avoider:
             if self.state_ == 0:
                 self.find_wall()
             elif self.state_ == 1:
-
-                self.turn_left()
-            
+                self.turn_left()            
             elif self.state_ == 2:
                 self.follow_the_wall()
             elif self.state_ == 3 :
@@ -264,6 +284,8 @@ class Object_Avoider:
                 self.rotate_left()
             elif self.state_ == 5:
                 self.stop()
+            elif self.state == 6:
+                self.reverse()
             else:
                 rospy.logerr('Unknown state!')
                         
