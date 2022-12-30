@@ -124,13 +124,18 @@ class PercepStack():
         if l>=1:
             self.found=True
             self.found_pub.publish("Stop")
+            self.child_id_red = "fruit_red_1"
+            self.child_id_yellow= "fruit_yellow_1"
+
         else:
             self.found=False
-
+            # self.child_id_red = ""
+            # self.child_id_yellow = ""
 
     def callback(self,depth_data, rgb_data) :
         self.depth_callback(depth_data)
         self.rgb_callback(rgb_data)
+
         if self.found:
             self.red_pub.publish(str(self.XYZ["red"]))
             self.yellow_pub.publish(str(self.XYZ["yellow"]))
@@ -139,7 +144,7 @@ class PercepStack():
                 t1 = geometry_msgs.msg.TransformStamped()
                 t1.header.frame_id = "camera_depth_frame2"
                 t1.header.stamp = rospy.Time.now()
-                t1.child_frame_id = "fruit_red_1"
+                t1.child_frame_id = self.child_id_red
                 t1.transform.translation.x = self.XYZ["red"][i][0]
                 t1.transform.translation.y = self.XYZ["red"][i][1]
                 t1.transform.translation.z = self.XYZ["red"][i][2]
@@ -156,7 +161,7 @@ class PercepStack():
                 t = geometry_msgs.msg.TransformStamped()
                 t.header.frame_id = "camera_depth_frame2"
                 t.header.stamp = rospy.Time.now()
-                t.child_frame_id = "fruit_yellow_1"
+                t.child_frame_id = self.child_id_yellow
                 t.transform.translation.x = self.XYZ["yellow"][i][0]
                 t.transform.translation.y = self.XYZ["yellow"][i][1]
                 t.transform.translation.z = self.XYZ["yellow"][i][2]
@@ -166,6 +171,43 @@ class PercepStack():
                 t.transform.rotation.w = 1            
                 tfm = tf2_msgs.msg.TFMessage([t])
                 self.pub_tf.publish(tfm)
+
+        # else :
+
+        #     # self.red_pub.publish(str(self.XYZ["red"]))
+        #     # self.yellow_pub.publish(str(self.XYZ["yellow"]))
+
+        #     for i in range(len(self.XYZ["red"])):
+        #         t1 = geometry_msgs.msg.TransformStamped()
+        #         t1.header.frame_id = "camera_depth_frame2"
+        #         t1.header.stamp = rospy.Time.now()
+        #         t1.child_frame_id = 
+        #         t1.transform.translation.x = self.XYZ["red"][i][0]
+        #         t1.transform.translation.y = self.XYZ["red"][i][1]
+        #         t1.transform.translation.z = self.XYZ["red"][i][2]
+        #         t1.transform.rotation.x = 0
+        #         t1.transform.rotation.y = 0
+        #         t1.transform.rotation.z = 0
+        #         t1.transform.rotation.w = 1            
+        #         tfm1 = tf2_msgs.msg.TFMessage([t1])
+        #         self.pub_tf1.publish(tfm1)
+            
+            
+        #     for i in range(len(self.XYZ["yellow"])):
+            
+        #         t = geometry_msgs.msg.TransformStamped()
+        #         t.header.frame_id = "camera_depth_frame2"
+        #         t.header.stamp = rospy.Time.now()
+        #         t.child_frame_id = "1"
+        #         t.transform.translation.x = self.XYZ["yellow"][i][0]
+        #         t.transform.translation.y = self.XYZ["yellow"][i][1]
+        #         t.transform.translation.z = self.XYZ["yellow"][i][2]
+        #         t.transform.rotation.x = 0
+        #         t.transform.rotation.y = 0
+        #         t.transform.rotation.z = 0
+        #         t.transform.rotation.w = 1            
+        #         tfm = tf2_msgs.msg.TFMessage([t])
+        #         self.pub_tf.publish(tfm)
 
             
 

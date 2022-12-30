@@ -36,7 +36,8 @@ class Object_Avoider:
         rospy.init_node('Object_Avoider')
         self.pub_ = rospy.Publisher('/cmd_vel', Twist, queue_size=1)        
         self.sub = rospy.Subscriber('ebot/laser/scan', LaserScan, self.clbk_laser)
-
+        self.mission_info = rospy.Publisher('/taskInfo', String , queue_size=1)
+        self.mission_info.publish("Mission Started!")
         self.flag_turn1 = True
         self.flag_follow_wall = False
         self.flag_initial_start = True
@@ -204,6 +205,7 @@ class Object_Avoider:
         print("Turn Right")
 
     def turn_left(self):
+        self.mission_info.publish("Mission Accomplished!")
         self.move(0.6,1.65) #0.1
         print("Turn Left")
         print(self.direction)
@@ -213,8 +215,8 @@ class Object_Avoider:
         print("Minor Left")
 
     def stop(self):
-        self.move(0.1,-0.15)
-        self.move(0.1 , 0.15)
+        # self.move(0.1,-0.15)
+        # self.move(0.1 , 0.15)
         self.move(0 ,0 )
         print("Stop")
 

@@ -55,7 +55,7 @@ class ManiStack:
         self.pub_tf2 = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
         self.pub_tf3 = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
 
-        self.pluck_pub=rospy.Publisher('/pluck_pub', String, queue_size = 1)
+        self.pluck_pub=rospy.Publisher('/found', String, queue_size = 1)
         
         self._display_trajectory_publisher = rospy.Publisher(
             '/move_group/display_planned_path', moveit_msgs.msg.DisplayTrajectory, queue_size=1)
@@ -192,8 +192,8 @@ def main():
         if arm_rotation == 0:
 
             pose = inter_pose_1
-            offset_interpose = 0.34
-            offset_pose = 0.295
+            offset_interpose = 0.345
+            offset_pose = 0.287
             pose_z = -1
         else :
 
@@ -230,13 +230,13 @@ def main():
                 red_pose_interpose = geometry_msgs.msg.Pose()
                 red_pose_interpose.position.x = round(transform_red[0] ,2 ) 
                 red_pose_interpose.position.y = round(transform_red[1] ,2 ) + offset_interpose
-                red_pose_interpose.position.z = round(transform_red[2] ,2 ) - 0.01
+                red_pose_interpose.position.z = round(transform_red[2] ,2 ) 
                 red_pose_interpose.orientation.z = pose_z
 
                 red_pose = geometry_msgs.msg.Pose()
                 red_pose.position.x = round(transform_red[0] ,2 ) 
                 red_pose.position.y = round(transform_red[1] ,2 ) + offset_pose
-                red_pose.position.z = round(transform_red[2] ,2 ) - 0.01
+                red_pose.position.z = round(transform_red[2] ,2 ) 
                 red_pose.orientation.z = pose_z
 
                 while not flag2 and attempt2 < 11 :
