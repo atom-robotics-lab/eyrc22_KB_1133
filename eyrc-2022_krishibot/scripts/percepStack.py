@@ -48,8 +48,8 @@ class PercepStack():
         #self.yellow_mask_lower = (0, 52, 0) --> arjun
         #self.yellow_mask_lower = (14, 242, 255 ) --> arjun
         
-        self.yellow_mask_lower = (10, 160, 150)
-        self.yellow_mask_upper = (30, 250, 255)        
+        self.yellow_mask_lower = (10, 166, 150)
+        self.yellow_mask_upper = (34, 250, 255)      
         self.bridge = CvBridge()
 
         sub_rgb = message_filters.Subscriber("/camera/color/image_raw2", Image)
@@ -63,11 +63,15 @@ class PercepStack():
         self.yellow_pub=rospy.Publisher('/fruit_yellow', String, queue_size = 1)
         self.red_pub=rospy.Publisher('/fruit_red', String, queue_size = 1)
         self.found_pub=rospy.Publisher('/found', String, queue_size = 1)
-        
+        self.yellow_posed = rospy.Subscriber('yellow_pepper' , String , self.callback_yellow)
         self.rgb_image, self.depth_image = None, None
         self.rgb_shape, self.depth_shape = None, None
         self.found=False
-        
+        self.yellow_point = "False"
+
+    def callback_yellow(self , data) :
+        self.yellow_point = data.data
+
     def rgb_callback(self, rgb_message) :
 
         self.rgb_image = self.bridge.imgmsg_to_cv2(rgb_message, desired_encoding = "bgr8")
@@ -284,7 +288,7 @@ class PercepStack():
             #x_center, y_center = int(pose[i][0]*(self.depth_shape[0]/self.rgb_shape[0])), int(pose[i][1]*(self.depth_shape[1]/self.rgb_shape[1]))
             x_center, y_center = int(pose["red"][i][0]), int(pose["red"][i][1])
             #print(depth_array[x_center, y_center])
-            if depth_array[x_center, y_center] <=0.78 :
+            if depth_array[x_center, y_center] <=0.77 :
                 depth_val["red"].append(depth_array[x_center, y_center])  
             else:
                 invalid.append(pose["red"][i])
@@ -296,7 +300,7 @@ class PercepStack():
             #x_center, y_center = int(pose[i][0]*(self.depth_shape[0]/self.rgb_shape[0])), int(pose[i][1]*(self.depth_shape[1]/self.rgb_shape[1]))
             x_center, y_center = int(pose["yellow"][i][0]), int(pose["yellow"][i][1])
             #print(depth_array[x_center, y_center])
-            if depth_array[x_center, y_center] == 0 :
+            if depth_array[x_center, y_center] <=0.78 :
                 depth_val["yellow"].append(depth_array[x_center, y_center]) 
             else:
                 invalid.append(pose["yellow"][i]) 
