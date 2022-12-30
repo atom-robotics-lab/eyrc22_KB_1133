@@ -228,13 +228,13 @@ def main():
                 ms.pub_tf2.publish(tfm2)
 
                 red_pose_interpose = geometry_msgs.msg.Pose()
-                red_pose_interpose.position.x = round(transform_red[0] ,2 ) 
+                red_pose_interpose.position.x = round(transform_red[0] ,2 ) - 0.01
                 red_pose_interpose.position.y = round(transform_red[1] ,2 ) + offset_interpose
                 red_pose_interpose.position.z = round(transform_red[2] ,2 ) 
                 red_pose_interpose.orientation.z = pose_z
 
                 red_pose = geometry_msgs.msg.Pose()
-                red_pose.position.x = round(transform_red[0] ,2 ) 
+                red_pose.position.x = round(transform_red[0] ,2 ) - 0.01
                 red_pose.position.y = round(transform_red[1] ,2 ) + offset_pose
                 red_pose.position.z = round(transform_red[2] ,2 ) 
                 red_pose.orientation.z = pose_z
@@ -253,8 +253,13 @@ def main():
                 ms.set_joint_angle_1(gripper_pose_close)
                 ms.set_joint_angles(red_drop_1) 
                 ms.set_joint_angle_1(gripper_pose_open)
-                arm_rotation = 1  
-                ms.pluck_pub.publish("True")
+                # arm_rotation = 1  
+                if arm_rotation == 0 :
+                    ms.set_joint_angles(inter_pose)
+                else :
+                    ms.set_joint_angles(inter_pose_1)
+                # ms.pluck_pub.publish("True")
+                ms.pluck_pub.publish("Move")
 
             
             if len(transform_yellow)!=0:
@@ -273,13 +278,13 @@ def main():
                 ms.pub_tf3.publish(tfm3)
 
                 yellow_pose = geometry_msgs.msg.Pose()
-                yellow_pose.position.x = round(transform_yellow[0] ,2 ) 
+                yellow_pose.position.x = round(transform_yellow[0] ,2 ) - 0.01
                 yellow_pose.position.y = round(transform_yellow[1] ,2 ) + offset_pose
                 yellow_pose.position.z = round(transform_yellow[2] ,2 ) - 0.01
                 yellow_pose.orientation.z = pose_z
 
                 yellow_inter_pose = geometry_msgs.msg.Pose()
-                yellow_inter_pose.position.x = round(transform_yellow[0] ,2 ) 
+                yellow_inter_pose.position.x = round(transform_yellow[0] ,2 ) - 0.01
                 yellow_inter_pose.position.y = round(transform_yellow[1] ,2 ) + offset_interpose
                 yellow_inter_pose.position.z = round(transform_yellow[2] ,2 ) - 0.01
                 yellow_inter_pose.orientation.z = pose_z
@@ -305,7 +310,9 @@ def main():
                 ms.set_joint_angles(yellow_drop) 
                 ms.set_joint_angle_1(gripper_pose_open)
                 arm_rotation = 0
-                ms.pluck_pub.publish("True")
+                # ms.pluck_pub.publish("True")
+                ms.pluck_pub.publish("Move")
+
                 
             
     except Exception as e:

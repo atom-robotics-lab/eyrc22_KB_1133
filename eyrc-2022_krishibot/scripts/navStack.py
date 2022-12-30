@@ -58,10 +58,10 @@ class Object_Avoider:
 
         if self.pepper == "Stop":
             self.value = 1
-        elif self.pepper == "" :
-            self.value = -1
-        else :
+        if self.pepper == "Move" :
             self.value = 0
+        # else :
+        #     self.value = -1
 
     def callback_pluck(self,data):
         self.pluck = data.data
@@ -78,18 +78,18 @@ class Object_Avoider:
             'straight' : min(min(msg.ranges[350:370]), 10)
         }
 
-        #print("FRONT     : ", self.regions['front'])
-        # print("LEFT : ", self.regions['left'], "STRAIGHT : ", self.regions['straight'], "RIGHT : ", self.regions['right'])
-        #print("RIGHT : ", self.regions['right'])
+        ##print("FRONT     : ", self.regions['front'])
+        # #print("LEFT : ", self.regions['left'], "STRAIGHT : ", self.regions['straight'], "RIGHT : ", self.regions['right'])
+        ##print("RIGHT : ", self.regions['right'])
 
         if self.regions['left'] < 2 and self.regions['right'] <2 :
             self.flag_follow_wall = True
 
         if self.value == 0 :
-            rospy.loginfo("Default")
+            #rospy.loginfo("Default")
             self.take_action()
         elif self.value == 1 :
-            rospy.loginfo("got pepper")
+            #rospy.loginfo("got pepper")
             self.change_state(5)
         else :
             rospy.loginfo("Blank")
@@ -97,7 +97,7 @@ class Object_Avoider:
 
     def change_state(self, state):
         if state is not self.state_:
-            print ('Wall follower - [%s] - %s' % (state, self.state_dict_[state]))
+            #print ('Wall follower - [%s] - %s' % (state, self.state_dict_[state]))
             self.state_ = state
 
     def move(self,linear,angular):
@@ -110,15 +110,15 @@ class Object_Avoider:
 
 
         if self.regions['left'] > 2 and self.regions['right'] > 2 and self.flag_initial_start:
-            print("Initial Start")
+            #print("Initial Start")
             self.change_state(2)       
-            rospy.loginfo("pehla elif")
+            #rospy.loginfo("pehla elif")
             
         elif (self.regions['front'] < 1.2 and (self.flag_turn1 and (not self.flag_initial_start))) or self.flag_turning1 : # and self.flag_follow_wall):
             self.flag_turning1 = True
 
             self.change_state(1)
-            rospy.loginfo("dusra elif")
+            #rospy.loginfo("dusra elif")
             
             if (self.regions['left'] > 0.5) : # and self.regions['front'] < 2.86) :
 
@@ -130,13 +130,10 @@ class Object_Avoider:
 
         elif ((self.regions['left'] > 1.7 and self.regions['straight'] < 0.9) and ((not self.flag_turning1) and (not self.flag_turn1) )) and (self.flag_turn2 and (not self.flag_initial_start)) or self.flag_turning2:
             self.flag_turning2 = True
-            #print("Second left turn")
-            if self.pepper == "Stop" :
-                self.move(0,0)
-                rospy.loginfo("pluck topic")
-
-            elif self.flag_turn2_stage == 0 :
-                print("Stage - 0")
+            ##print("Second left turn")
+            
+            if self.flag_turn2_stage == 0 :
+                #print("Stage - 0")
 
                 self.change_state(4)
             
@@ -145,10 +142,10 @@ class Object_Avoider:
                     
                     #self.flag_turn2 = False
                     #self.flag_turning2 = False
-                    #print("EXITING ROTATE LEFT")
+                    ##print("EXITING ROTATE LEFT")
 
             elif self.flag_turn2_stage == 1 :
-                print("Stage - 1")
+                #print("Stage - 1")
                 
                 self.change_state(2)
 
@@ -156,7 +153,7 @@ class Object_Avoider:
                     self.flag_turn2_stage = 2
 
             elif self.flag_turn2_stage == 2 :
-                print("Stage - 2")
+                #print("Stage - 2")
                 self.change_state(4)
 
                 if self.regions['straight'] > 5:
@@ -175,64 +172,65 @@ class Object_Avoider:
 
         elif (self.regions['left'] < 0.4 or self.regions['fleft'] < 0.4) and ((not self.flag_turn1) and (not self.flag_turning1)):
             
-            rospy.loginfo("Right")
+            #rospy.loginfo("Right")
             self.turn_right()
-            #print("RIGHT")
+            ##print("RIGHT")
             #self.change_state(2)
         
         elif self.regions['left'] > 0.73 and ((not self.flag_turn1) and (not self.flag_turning1)) and self.regions['straight'] > 1.63 :
 
-            rospy.loginfo("left minor")
+            #rospy.loginfo("left minor")
             self.turn_left_minor()
             
-            #print("RIGHT")
+            ##print("RIGHT")
             #self.change_state(2)
 
 
         else:
             self.change_state(2)
-            #rospy.loginfo(self.regions)
-            rospy.loginfo("Detected no wall")
+            ##rospy.loginfo(self.regions)
+            #rospy.loginfo("Detected no wall")
 
        
 
     def find_wall(self):
         self.move(0 , 0 )
-        print("Find Wall")
+        #print("Find Wall")
 
     def turn_right(self) :
         self.move(0.5, - 1)
-        print("Turn Right")
+        #print("Turn Right")
 
     def turn_left(self):
         self.mission_info.publish("Mission Accomplished!")
         self.move(0.6,1.65) #0.1
-        print("Turn Left")
-        print(self.direction)
+        #print("Turn Left")
+        #print(self.direction)
 
     def turn_left_minor(self) :
         self.move(0.5, 1)
-        print("Minor Left")
+        #print("Minor Left")
 
     def stop(self):
         # self.move(0.1,-0.15)
         # self.move(0.1 , 0.15)
         self.move(0 ,0 )
-        print("Stop")
+        # rospy.sleep(2)
+        #print("Stop")
 
     def follow_the_wall(self):
         
-        print("Follow Wall")
+        #print("Follow Wall")
         self.move(0.6, 0) #0.3
         self.flag_initial_start = False
-        #print(self.direction)  
+        ##print(self.direction)  
 
     def start_move(self) :
         self.move(1 ,0 )
         #rospy.sleep(5)
 
     def rotate_left(self) :
-        print("Rotating Left")
+        #print("Rotating Left")
         self.move(0, 1 )
 
 
