@@ -24,7 +24,9 @@ class Object_Avoider:
             1: 'turn left',
             2: 'follow the wall',
             3 : 'turn right',
-            4 : 'rotate_left'
+            4 : 'rotate_left',
+            5 : 'Stop',
+            6 : 'Reverse'
         }
 
         self.message = Twist()
@@ -45,14 +47,36 @@ class Object_Avoider:
         self.flag_turning2 = False
 
         self.flag_turn2_stage = 0
+
+
         self.pepper_sub = rospy.Subscriber("/found" , String , self.callback)
         self.plucked = rospy.Subscriber("/pluck_pub" , String , self.callback_pluck)
-        self.pepper = "Move"
+        self.return_back = rospy.Subscriber("/yellow_pepper" , String , self.callback_return)
+        self.value = 0
+
+        self.mission_info = rospy.Publisher('/taskInfo', String , queue_size=1)
+
+    def callback_return (self ,data):
+
+        self.return_pose = data.data
     def callback(self,data):
         self.pepper = data.data
 
+        if self.pepper == "Stop" and self.return_pose == "False":
+            self.value = 1
+
+        if self.pepper == "Move" and self.return_pose == "False":
+            self.value = 0
+
+        if self.pepper == "False" and self.return_pose == "False":
+            self.value = 0 
+
+        #if self.return_pose == "True":
+            #self.move(-0.6 , 0)
+
     def callback_pluck(self,data):
         self.pluck = data.data
+
 
     def clbk_laser(self, msg):
         
@@ -65,19 +89,29 @@ class Object_Avoider:
             'straight' : min(min(msg.ranges[350:370]), 10)
         }
 
-        #print("FRONT     : ", self.regions['front'])
-        # print("LEFT : ", self.regions['left'], "STRAIGHT : ", self.regions['straight'], "RIGHT : ", self.regions['right'])
-        #print("RIGHT : ", self.regions['right'])
+        ###print("FRONT     : ", self.regions['front'])
+        # ##print("LEFT : ", self.regions['left'], "STRAIGHT : ", self.regions['straight'], "RIGHT : ", self.regions['right'])
+        ###print("RIGHT : ", self.regions['right'])
 
         if self.regions['left'] < 2 and self.regions['right'] <2 :
             self.flag_follow_wall = True
 
-        self.take_action()
+        if self.value == 0 :
+            #rospy.loginfo("Default")
+            self.take_action()
+
+        elif self.value == 1 :
+            #rospy.loginfo("got pepper")
+            self.change_state(5)
+        else :
+            rospy.loginfo("Blank")
+
+ 
         
 
     def change_state(self, state):
         if state is not self.state_:
-            print ('Wall follower - [%s] - %s' % (state, self.state_dict_[state]))
+            ##print ('Wall follower - [%s] - %s' % (state, self.state_dict_[state]))
             self.state_ = state
 
     def move(self,linear,angular):
@@ -86,43 +120,48 @@ class Object_Avoider:
         velocity_msg.angular.z = angular 
         self.pub_.publish(velocity_msg)
 
+    '''def publishing_value(self):
+        elf.mission_info.publish("Mission Accomplished!")
+        print("Mission Accomplished!")
+        self.pose_change.publish(1)'''
+
     def take_action(self):
 
-        if self.pepper == "Stop":
+        if self.return_pose == "True" :
+            self.change_state(6)
 
-            self.move(0,0)
-            rospy.loginfo("Pluck info")
-            while self.pepper!="Move":
-                self.change_state(2)
+            if self.regions['left'] > 2 and self.regions['right'] > 2 :
+                print("Mission Accomplished!")
+                self.mission_info.publish("Mission Accomplished!")
 
-        elif self.regions['left'] > 2 and self.regions['right'] > 2 and self.flag_initial_start:
-            print("Initial Start")
+
+
+        if self.regions['left'] > 2 and self.regions['right'] > 2 and self.flag_initial_start:
+            ##print("Initial Start")
             self.change_state(2)       
-            rospy.loginfo("pehla elif")
+            #rospy.loginfo("pehla elif")
             
         elif (self.regions['front'] < 1.2 and (self.flag_turn1 and (not self.flag_initial_start))) or self.flag_turning1 : # and self.flag_follow_wall):
             self.flag_turning1 = True
 
             self.change_state(1)
-            rospy.loginfo("dusra elif")
+            #rospy.loginfo("dusra elif")
             
             if (self.regions['left'] > 0.5) : # and self.regions['front'] < 2.86) :
 
                 self.change_state(1)
-
+                self.publishing_value()
+                
             if  (self.regions['front'] > 2.1 and (self.regions['left'] < 0.67 or self.regions['fleft'] < 0.6)) or (self.regions['straight'] > 5):
                 self.flag_turn1 = False
                 self.flag_turning1 = False
 
         elif ((self.regions['left'] > 1.7 and self.regions['straight'] < 0.9) and ((not self.flag_turning1) and (not self.flag_turn1) )) and (self.flag_turn2 and (not self.flag_initial_start)) or self.flag_turning2:
             self.flag_turning2 = True
-            #print("Second left turn")
-            if self.pepper == "Stop" :
-                self.move(0,0)
-                rospy.loginfo("pluck topic")
-
-            elif self.flag_turn2_stage == 0 :
-                print("Stage - 0")
+            ###print("Second left turn")
+            
+            if self.flag_turn2_stage == 0 :
+                ##print("Stage - 0")
 
                 self.change_state(4)
             
@@ -131,10 +170,10 @@ class Object_Avoider:
                     
                     #self.flag_turn2 = False
                     #self.flag_turning2 = False
-                    #print("EXITING ROTATE LEFT")
+                    ###print("EXITING ROTATE LEFT")
 
             elif self.flag_turn2_stage == 1 :
-                print("Stage - 1")
+                ##print("Stage - 1")
                 
                 self.change_state(2)
 
@@ -142,7 +181,7 @@ class Object_Avoider:
                     self.flag_turn2_stage = 2
 
             elif self.flag_turn2_stage == 2 :
-                print("Stage - 2")
+                ##print("Stage - 2")
                 self.change_state(4)
 
                 if self.regions['straight'] > 5:
@@ -161,61 +200,70 @@ class Object_Avoider:
 
         elif (self.regions['left'] < 0.4 or self.regions['fleft'] < 0.4) and ((not self.flag_turn1) and (not self.flag_turning1)):
             
-            rospy.loginfo("Right")
+            #rospy.loginfo("Right")
             self.turn_right()
-            #print("RIGHT")
+            ###print("RIGHT")
             #self.change_state(2)
         
         elif self.regions['left'] > 0.73 and ((not self.flag_turn1) and (not self.flag_turning1)) and self.regions['straight'] > 1.63 :
 
-            rospy.loginfo("left minor")
+            #rospy.loginfo("left minor")
             self.turn_left_minor()
             
-            #print("RIGHT")
+            ###print("RIGHT")
             #self.change_state(2)
 
 
         else:
             self.change_state(2)
-            #rospy.loginfo(self.regions)
-            rospy.loginfo("Detected no wall")
+            ##rospy.loginfo(self.regions)
+            #rospy.loginfo("Detected no wall")
 
        
 
     def find_wall(self):
         self.move(0 , 0 )
-        print("Find Wall")
+        ##print("Find Wall")
 
     def turn_right(self) :
         self.move(0.5, - 1)
-        print("Turn Right")
+        ##print("Turn Right")
 
     def turn_left(self):
         self.move(0.6,1.65) #0.1
-        print("Turn Left")
-        print(self.direction)
+
+
+
+        ##print("Turn Left")
+        ##print(self.direction)
 
     def turn_left_minor(self) :
         self.move(0.5, 1)
-        print("Minor Left")
+        ##print("Minor Left")
+    
+    def reverse(self) :
+        self.move(-0.6 , 0)
 
     def stop(self):
+        # self.move(0.1,-0.15)
+        # self.move(0.1 , 0.15)
         self.move(0 ,0 )
-        print("Stop")
+        # rospy.sleep(2)
+        ##print("Stop")
 
     def follow_the_wall(self):
         
-        print("Follow Wall")
-        self.move(0.6, 0) #0.3
+        ##print("Follow Wall")
+        self.move(0.3, 0) #0.3
         self.flag_initial_start = False
-        #print(self.direction)  
+        ###print(self.direction)  
 
     def start_move(self) :
         self.move(1 ,0 )
         #rospy.sleep(5)
 
     def rotate_left(self) :
-        print("Rotating Left")
+        ##print("Rotating Left")
         self.move(0, 1 )
 
 
@@ -227,13 +275,17 @@ class Object_Avoider:
             if self.state_ == 0:
                 self.find_wall()
             elif self.state_ == 1:
-                self.turn_left()
+                self.turn_left()            
             elif self.state_ == 2:
                 self.follow_the_wall()
             elif self.state_ == 3 :
                 self.turn_right()
             elif self.state_ == 4 :
                 self.rotate_left()
+            elif self.state_ == 5:
+                self.stop()
+            elif self.state == 6:
+                self.reverse()
             else:
                 rospy.logerr('Unknown state!')
                         
