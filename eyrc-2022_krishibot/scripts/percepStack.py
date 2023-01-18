@@ -35,7 +35,8 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import String
 import tf2_ros
 import tf2_msgs.msg
-
+import tf
+import math
 ##############################################################
 
 
@@ -59,6 +60,8 @@ class PercepStack():
 
         self.pub_tf = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
         self.pub_tf1 = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
+        self.pub_tf2 = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
+        self.pub_tf3 = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)
         self.pub=rospy.Publisher('/pepper', String, queue_size = 1)
         self.yellow_pub=rospy.Publisher('/fruit_yellow', String, queue_size = 1)
         self.red_pub=rospy.Publisher('/fruit_red', String, queue_size = 1)
@@ -180,44 +183,61 @@ class PercepStack():
                 tfm = tf2_msgs.msg.TFMessage([t])
                 self.pub_tf.publish(tfm)
 
-        # else :
+            self.ebot_base_transform()
 
-        #     # self.red_pub.publish(str(self.XYZ["red"]))
-        #     # self.yellow_pub.publish(str(self.XYZ["yellow"]))
 
-        #     for i in range(len(self.XYZ["red"])):
-        #         t1 = geometry_msgs.msg.TransformStamped()
-        #         t1.header.frame_id = "camera_depth_frame2"
-        #         t1.header.stamp = rospy.Time.now()
-        #         t1.child_frame_id = 
-        #         t1.transform.translation.x = self.XYZ["red"][i][0]
-        #         t1.transform.translation.y = self.XYZ["red"][i][1]
-        #         t1.transform.translation.z = self.XYZ["red"][i][2]
-        #         t1.transform.rotation.x = 0
-        #         t1.transform.rotation.y = 0
-        #         t1.transform.rotation.z = 0
-        #         t1.transform.rotation.w = 1            
-        #         tfm1 = tf2_msgs.msg.TFMessage([t1])
-        #         self.pub_tf1.publish(tfm1)
-            
-            
-        #     for i in range(len(self.XYZ["yellow"])):
-            
-        #         t = geometry_msgs.msg.TransformStamped()
-        #         t.header.frame_id = "camera_depth_frame2"
-        #         t.header.stamp = rospy.Time.now()
-        #         t.child_frame_id = "1"
-        #         t.transform.translation.x = self.XYZ["yellow"][i][0]
-        #         t.transform.translation.y = self.XYZ["yellow"][i][1]
-        #         t.transform.translation.z = self.XYZ["yellow"][i][2]
-        #         t.transform.rotation.x = 0
-        #         t.transform.rotation.y = 0
-        #         t.transform.rotation.z = 0
-        #         t.transform.rotation.w = 1            
-        #         tfm = tf2_msgs.msg.TFMessage([t])
-        #         self.pub_tf.publish(tfm)
+    def transform_pose(self, src):
+        try:
+            # self.listener.waitForTransform("ebot_base" , "pepper" , rospy.Time() , rospy.Duration(4.0))
+            #rospy.loginfo("in the transform function")
+            transform = []
+            #trans = self.tf_buffer.lookup_transform('ebot_base' , 'fruit_red' , rospy.Time())
+            listener = tf.TransformListener()
+            listener.waitForTransform("ebot_base", src, rospy.Time(), rospy.Duration(4.0))
+            (trans, rot) = listener.lookupTransform('ebot_base', src,rospy.Time())
 
-            
+
+            #print("TRANSFORM :" , trans, rot)
+
+            return trans, rot
+        except:
+            return [],[]
+    
+    def ebot_base_transform(self):
+
+        transform_yellow, rot_yellow= self.transform_pose("fruit_yellow_1")
+        transform_red, rot_red= self.transform_pose("fruit_red_1")
+
+        if len(transform_red)!=0:
+            # attempt2 = 0
+            t2 = geometry_msgs.msg.TransformStamped()
+            t2.header.frame_id = "ebot_base"
+            t2.header.stamp = rospy.Time.now()
+            t2.child_frame_id = "fruit_red"
+            t2.transform.translation.x = round(transform_red[0] ,2 ) 
+            t2.transform.translation.y = round(transform_red[1] ,2 ) 
+            t2.transform.translation.z = round(transform_red[2] ,2 ) 
+            t2.transform.rotation.x = 0
+            t2.transform.rotation.y = 0
+            t2.transform.rotation.z = 0
+            t2.transform.rotation.w = 1            
+            tfm2 = tf2_msgs.msg.TFMessage([t2])
+            self.pub_tf2.publish(tfm2)
+
+        if len(transform_yellow)!=0:
+            t3 = geometry_msgs.msg.TransformStamped()
+            t3.header.frame_id = "ebot_base"
+            t3.header.stamp = rospy.Time.now()
+            t3.child_frame_id = "fruit_yellow"
+            t3.transform.translation.x = round(transform_yellow[0] ,2 ) 
+            t3.transform.translation.y = round(transform_yellow[1] ,2 )
+            t3.transform.translation.z = round(transform_yellow[2] ,2 ) 
+            t3.transform.rotation.x = 0
+            t3.transform.rotation.y = 0
+            t3.transform.rotation.z = 0
+            t3.transform.rotation.w = 1            
+            tfm3 = tf2_msgs.msg.TFMessage([t3])
+            self.pub_tf3.publish(tfm3)
 
     def mask(self, frame, lower, upper):
     
@@ -253,6 +273,7 @@ class PercepStack():
     def rgb_image_processing(self):
 
         rgb_image = self.rgb_image  
+        
         # cv2.imshow("rgb",rgb_image)
         # cv2.waitKey(1) 
         ###print(rgb_image.shape)
@@ -262,8 +283,8 @@ class PercepStack():
         pose={}
         pose["red"]=red_mask_center
         pose["yellow"]=yellow_mask_center
-        #print("red: ", pose["red"])
-        #print("Yellow: ",pose["yellow"])
+        print("red: ", pose["red"])
+        print("Yellow: ",pose["yellow"])
         #pose = red_mask_center + yellow_mask_center    
 
         for i in range(len(red_mask_center)) :
@@ -309,6 +330,24 @@ class PercepStack():
 
         return depth_val
 
+    def set_joint_angles(self, arg_list_joint_angles):
+
+        list_joint_values = self._group1.get_current_joint_values()
+        rospy.loginfo('\033[94m' + ">>> Current Joint Values:" + '\033[0m')
+        rospy.loginfo(list_joint_values)
+
+        self._group1.set_joint_value_target(arg_list_joint_angles)
+        self._group1.plan()
+        flag_plan = self._group1.go(wait=True)
+
+        list_joint_values = self._group1.get_current_joint_values()
+        rospy.loginfo('\033[94m' + ">>> Final Joint Values:" + '\033[0m')
+        rospy.loginfo(list_joint_values)
+
+        pose_values = self._group1.get_current_pose().pose
+        rospy.loginfo('\033[94m' + ">>> Final Pose:" + '\033[0m')
+        rospy.loginfo(pose_values)   
+
 
 
 def main():
@@ -316,7 +355,12 @@ def main():
     # try:
     ps = PercepStack()
     rospy.sleep(1)
+    inter_pose =  [math.radians(-257),math.radians(-23),math.radians(-60),math.radians(86),math.radians(0),math.radians(-1)]
+    inter_pose_1=  [math.radians(-88),math.radians(-3),math.radians(-37),math.radians(37),math.radians(0),math.radians(-1)]
+
     while True:
+        
+        ps.set_joint_angles(inter_pose)
         ps.detect()
         
     # except Exception as e:

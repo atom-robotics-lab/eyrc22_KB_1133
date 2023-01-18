@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+
+<!--  
+  Project Name: ebot 
+  Created on:   2.10.2020
+  Author: ROS team
+  Copyright (c) 2020 eYantra IITB 
+-->
+
+
+<robot name="ebot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!-- ebot arm -->
+  <xacro:include filename="$(find ebot_description)/urdf/ebot_hardware.xacro" />
+<!--   <xacro:include filename="$(find ur_description)/urdf/common.gazebo.xacro" /> -->
+  <xacro:include filename="$(find ur_description)/urdf/hardware_ur5.urdf.xacro" />
+  <xacro:include filename="$(find robotiq_85_description)/urdf/robotiq_85_gripper.urdf.xacro" />
+
+
+  <link
+    name="trolley">
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://ebot_description/meshes/trolley.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.25098 0.25098 0.25098 1" />
+      </material>
+    </visual>
+  </link>
+
+    <joint
+    name="ebot_base_trolley"
+    type="fixed">
+    <origin
+      xyz="0.28 -0.61 -0.12"
+      rpy="1.57 0 3.14" />
+    <parent
+      link="ebot_base" />
+    <child
+      link="trolley" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+
+
+
+  <xacro:ur5_robot prefix="" joint_limited="false"/>
+
+
+
+  <joint name="ebot_joint" type="fixed">
+    <parent link="ebot_base" />
+    <child link = "base_link" />
+    <origin xyz="0.16 0 0.521" rpy="0.0 0.0 0" />  <!--576 height from ground-->
+  </joint>
+
+  <xacro:robotiq_85_gripper prefix="" parent="wrist_3_link" >
+    <origin xyz="0 0.1 0" rpy="0 0 ${pi/2}"/>
+  </xacro:robotiq_85_gripper>
+
+
+
+</robot>
