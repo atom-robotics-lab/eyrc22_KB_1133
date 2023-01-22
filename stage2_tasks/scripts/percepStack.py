@@ -14,7 +14,7 @@ import geometry_msgs.msg
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 import message_filters
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image,CompressedImage
 from std_msgs.msg import String
 import tf2_ros
 import tf2_msgs.msg
@@ -36,7 +36,7 @@ class PercepStack():
 
         self.bridge = CvBridge()
 
-        sub_rgb = message_filters.Subscriber("/camera/color/image_raw", Image)
+        sub_rgb = message_filters.Subscriber("/camera/color/image_raw/compressed", CompressedImage)
         sub_depth = message_filters.Subscriber("/camera/aligned_depth_to_color/image_raw", Image)
         ts = message_filters.ApproximateTimeSynchronizer([sub_depth, sub_rgb], queue_size=10, slop=0.5)
         ts.registerCallback(self.callback)
@@ -244,24 +244,24 @@ class PercepStack():
             #x_center, y_center = int(pose[i][0]*(self.depth_shape[0]/self.rgb_shape[0])), int(pose[i][1]*(self.depth_shape[1]/self.rgb_shape[1]))
             x_center, y_center = int(pose["red"][i][0]), int(pose["red"][i][1])
             #print(depth_array[x_center, y_center])
-            if depth_array[x_center, y_center] <=10 :
-                depth_val["red"].append(depth_array[x_center, y_center])  
-            else:
-                invalid.append(pose["red"][i])
-        for i in invalid:
-            pose["red"].remove(i)
+            # if depth_array[x_center, y_center] <=10 :
+            depth_val["red"].append(depth_array[x_center, y_center])  
+            # else:
+                # invalid.append(pose["red"][i])
+        # for i in invalid:
+            # pose["red"].remove(i)
         
         invalid=[]
         for i in range(len(pose["yellow"])):
             #x_center, y_center = int(pose[i][0]*(self.depth_shape[0]/self.rgb_shape[0])), int(pose[i][1]*(self.depth_shape[1]/self.rgb_shape[1]))
             x_center, y_center = int(pose["yellow"][i][0]), int(pose["yellow"][i][1])
             #print(depth_array[x_center, y_center])
-            if depth_array[x_center, y_center] <=10 :
-                depth_val["yellow"].append(depth_array[x_center, y_center]) 
-            else:
-                invalid.append(pose["yellow"][i]) 
-        for i in invalid:
-            pose["yellow"].remove(i)
+            # if depth_array[x_center, y_center] <=10 :
+            depth_val["yellow"].append(depth_array[x_center, y_center]) 
+            # else:
+                # invalid.append(pose["yellow"][i]) 
+        # for i in invalid:
+            # pose["yellow"].remove(i)
 
         return depth_val
 
