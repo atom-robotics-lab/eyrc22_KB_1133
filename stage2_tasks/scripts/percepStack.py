@@ -58,9 +58,11 @@ class PercepStack():
 
     def rgb_callback(self, rgb_message) :
 
-        self.rgb_image = self.bridge.imgmsg_to_cv2(rgb_message, desired_encoding = "bgr8")
+        np_arr = np.frombuffer(rgb_message.data, np.uint8)
+        self.rgb_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+        #self.rgb_image = self.bridge.imgmsg_to_cv2(rgb_message, desired_encoding = "bgr8")
         self.rgb_shape = self.rgb_image.shape
-        print(self.rgb_shape)
 
     
     def depth_callback(self, depth_message) :

@@ -51,7 +51,7 @@ class PercepStack():
         self.bridge = CvBridge()
 
         sub_rgb = message_filters.Subscriber("/camera/color/image_raw/compressed", CompressedImage)
-        sub_depth = message_filters.Subscriber("/camera/depth/image_raw2", Image)
+        sub_depth = message_filters.Subscriber("/camera/aligned_depth_to_color/image_raw", Image)
         ts = message_filters.ApproximateTimeSynchronizer([sub_depth, sub_rgb], queue_size=10, slop=0.5)
         ts.registerCallback(self.callback)
 
@@ -87,16 +87,18 @@ class PercepStack():
 
     def handle_turtle_pose(self, x , y, z , pepper ) :
         br = tf.TransformBroadcaster()
-        br.sendTransform((x, y, z),
-                        tf.transformations.quaternion_from_euler(0, 0 , 0),
+        br.sendTransform((x , y , z),
+                        (0,0,0,1),
                         rospy.Time.now(),
                         pepper,
-                        "camera_depth_frame2")
+                        "camera_link")
+        print(x ,y ,z )                
+        print("Transform broadcast")
 
     def find_transforms(self,pose, depth_val) : # Finds XYZ coordinates
         transforms = {"red":[],"yellow":[]}
 
-        fx, fy = [554.3827128226441, 554.3827128226441]
+        fx, fy = [554.387, 554.387]
         cx, cy = [320.5, 240.5]
 
         #tf = TransformFrames()
@@ -118,9 +120,9 @@ class PercepStack():
         X , Y , Z = 0 , 0, 0
         for i in range(len(pose["yellow"])) :
             current_pose, current_depth = pose["yellow"][i], depth_val["yellow"][i]
-            X = current_depth * ((current_pose[1]-cx)/fx)
-            Y = current_depth * ((current_pose[0]-cy)/fy)
-            Z = current_depth
+            Y = -1*current_depth * ((current_pose[1]-cx)/fx)
+            Z = -1*current_depth * ((current_pose[0]-cy)/fy)
+            X = current_depth
             ###print(X , Y , Z )
             transforms["yellow"].append([X,Y,Z])
 
@@ -252,7 +254,7 @@ class PercepStack():
             M = cv2.moments(c)
             center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
-            if radius > 25:
+            if radius > 10:
                 obj_radius.append(radius)
                 obj_center.append(list(center[::-1]))
                 cv2.circle(frame,obj_center[0][::-1],30,(0,0,255),2)
@@ -263,13 +265,16 @@ class PercepStack():
 
     def rgb_image_processing(self):
 
-        rgb_image = self.rgb_image  
-        
-        # cv2.imshow("rgb",rgb_image)
-        # cv2.waitKey(1) 
-        ###print(rgb_image.shape)
+        try  :
 
-        try:
+            rgb_image = self.rgb_image  
+            
+        
+            cv2.imshow("rgb",rgb_image)
+            cv2.waitKey(1) 
+            #print(rgb_image.shape)
+
+        
         
             red_mask_center, red_mask_radius = self.mask(rgb_image, self.red_mask_lower, self.red_mask_upper)
             yellow_mask_center, yellow_mask_radius = self.mask(rgb_image, self.yellow_mask_lower, self.yellow_mask_upper)
