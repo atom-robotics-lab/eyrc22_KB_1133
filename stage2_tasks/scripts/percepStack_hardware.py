@@ -42,15 +42,12 @@ import math
 
 class PercepStack():
     def __init__(self) -> None:
-        self.red_mask_lower = (0, 112, 116)
-        #self.red_mask_lower = (15, 112, 116)
-        self.red_mask_upper = (10, 200, 255)
-
-        #self.yellow_mask_lower = (0, 52, 0) --> arjun
-        #self.yellow_mask_lower = (14, 242, 255 ) --> arjun
+        self.red_mask_lower = (150, 109, 51)
+        self.red_mask_upper = (179, 255, 255)
         
-        self.yellow_mask_lower = (10, 166, 150)
-        self.yellow_mask_upper = (34, 250, 255)      
+        self.yellow_mask_lower = (10, 134, 146)
+        self.yellow_mask_upper = (27, 255, 255)  
+
         self.bridge = CvBridge()
 
         sub_rgb = message_filters.Subscriber("/camera/color/image_raw/compressed", CompressedImage)
@@ -255,7 +252,7 @@ class PercepStack():
             M = cv2.moments(c)
             center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
-            if radius > 10:
+            if radius > 25:
                 obj_radius.append(radius)
                 obj_center.append(list(center[::-1]))
                 cv2.circle(frame,obj_center[0][::-1],30,(0,0,255),2)
