@@ -268,26 +268,30 @@ class PercepStack():
         # cv2.imshow("rgb",rgb_image)
         # cv2.waitKey(1) 
         ###print(rgb_image.shape)
+
+        try:
         
-        red_mask_center, red_mask_radius = self.mask(rgb_image, self.red_mask_lower, self.red_mask_upper)
-        yellow_mask_center, yellow_mask_radius = self.mask(rgb_image, self.yellow_mask_lower, self.yellow_mask_upper)
-        pose={}
-        pose["red"]=red_mask_center
-        pose["yellow"]=yellow_mask_center
-        print("red: ", pose["red"])
-        print("Yellow: ",pose["yellow"])
-        #pose = red_mask_center + yellow_mask_center    
+            red_mask_center, red_mask_radius = self.mask(rgb_image, self.red_mask_lower, self.red_mask_upper)
+            yellow_mask_center, yellow_mask_radius = self.mask(rgb_image, self.yellow_mask_lower, self.yellow_mask_upper)
+            pose={}
+            pose["red"]=red_mask_center
+            pose["yellow"]=yellow_mask_center
+            print("red: ", pose["red"])
+            print("Yellow: ",pose["yellow"])
+            #pose = red_mask_center + yellow_mask_center    
 
-        for i in range(len(red_mask_center)) :
-            cv2.circle(rgb_image, (int(red_mask_center[i][0]), int(red_mask_center[i][1])), int(red_mask_radius[i]),(0, 255, 255), 2)
-            cv2.circle(rgb_image, red_mask_center[i], 5, (0, 0, 255), -1)
+            for i in range(len(red_mask_center)) :
+                cv2.circle(rgb_image, (int(red_mask_center[i][0]), int(red_mask_center[i][1])), int(red_mask_radius[i]),(0, 255, 255), 2)
+                cv2.circle(rgb_image, red_mask_center[i], 5, (0, 0, 255), -1)
 
-        for i in range(len(yellow_mask_center)) :
-            cv2.circle(rgb_image, (int(yellow_mask_center[i][0]), int(yellow_mask_center[i][1])), int(yellow_mask_radius[i]),(0, 255, 255), 2)
-            cv2.circle(rgb_image, yellow_mask_center[i], 5, (0, 0, 255), -1)        
-   
-        return pose
-
+            for i in range(len(yellow_mask_center)) :
+                cv2.circle(rgb_image, (int(yellow_mask_center[i][0]), int(yellow_mask_center[i][1])), int(yellow_mask_radius[i]),(0, 255, 255), 2)
+                cv2.circle(rgb_image, yellow_mask_center[i], 5, (0, 0, 255), -1)        
+    
+            return pose
+        except:
+            pose={"red":[],"yellow":[]}
+            return pose
 
     def depth_image_processing(self, pose) :
 
