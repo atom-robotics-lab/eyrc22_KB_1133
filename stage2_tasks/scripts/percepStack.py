@@ -24,13 +24,9 @@ import tf2_msgs.msg
 
 class PercepStack():
     def __init__(self) -> None:
-        # self.red_mask_lower = (0, 112, 116)
-        # self.red_mask_upper = (10, 200, 255)
         self.red_mask_lower = (150, 109, 51)
         self.red_mask_upper = (179, 255, 255)
         
-        # self.yellow_mask_lower = (10, 166, 150)
-        # self.yellow_mask_upper = (34, 250, 255)    
         self.yellow_mask_lower = (10, 134, 146)
         self.yellow_mask_upper = (24, 255, 255)    
 
@@ -47,14 +43,9 @@ class PercepStack():
         self.yellow_pub=rospy.Publisher('/fruit_yellow', String, queue_size = 1)
         self.red_pub=rospy.Publisher('/fruit_red', String, queue_size = 1)
         self.found_pub=rospy.Publisher('/found', String, queue_size = 1)
-        self.yellow_posed = rospy.Subscriber('yellow_pepper' , String , self.callback_yellow)
         self.rgb_image, self.depth_image = None, None
         self.rgb_shape, self.depth_shape = None, None
         self.found=False
-        self.yellow_point = "False"
-
-    def callback_yellow(self , data) :
-        self.yellow_point = data.data
 
     def rgb_callback(self, rgb_message) :
 
@@ -82,13 +73,13 @@ class PercepStack():
         #pose_array = PoseArray(header=Header(frame_id = "camera_depth_frame2", stamp = rospy.Time(0)))
 
         X , Y , Z = 0 , 0, 0
-        ##print(len(pose["red"]),len(depth_val["red"]))
+        # print(len(pose["red"]),len(depth_val["red"]))
         for i in range(len(pose["red"])) :
             current_pose, current_depth = pose["red"][i], depth_val["red"][i]
             X = current_depth * ((current_pose[1]-cx)/fx)
             Y = current_depth * ((current_pose[0]-cy)/fy)
             Z = current_depth
-            ###print(X , Y , Z )
+            # print(X , Y , Z )
             transforms["red"].append([X,Y,Z])
         
         X , Y , Z = 0 , 0, 0
@@ -97,7 +88,7 @@ class PercepStack():
             X = current_depth * ((current_pose[1]-cx)/fx)
             Y = current_depth * ((current_pose[0]-cy)/fy)
             Z = current_depth
-            ###print(X , Y , Z )
+            # print(X , Y , Z )
             transforms["yellow"].append([X,Y,Z])
         print(transforms)
         return transforms
@@ -109,7 +100,7 @@ class PercepStack():
         #cv2.waitKey(0)
         depth=self.depth_image_processing(pose)
         self.depth=depth
-        print("I've got Pose:",pose,type(pose))
+        print("Pose:",pose,type(pose))
         print("Depth:",depth,type(depth))
         self.XYZ=self.find_transforms(pose,depth) # add indexing to depth and remove in case of only one bell peper
         print("Output XYZ:",self.XYZ)
@@ -130,8 +121,7 @@ class PercepStack():
     def callback(self,depth_data, rgb_data) :
         self.depth_callback(depth_data)
         self.rgb_callback(rgb_data)
-        rospy.loginfo("Callback")
-
+        
         if self.found:
             self.red_pub.publish(str(self.XYZ["red"]))
             self.yellow_pub.publish(str(self.XYZ["yellow"]))
@@ -207,7 +197,7 @@ class PercepStack():
         try:
             cv2.imshow("rgb",rgb_image)
             cv2.waitKey(1) 
-            ###print(rgb_image.shape)
+            # print(rgb_image.shape)
             
             red_mask_center, red_mask_radius = self.mask(rgb_image, self.red_mask_lower, self.red_mask_upper)
             yellow_mask_center, yellow_mask_radius = self.mask(rgb_image, self.yellow_mask_lower, self.yellow_mask_upper)
@@ -216,17 +206,6 @@ class PercepStack():
             pose["yellow"]=yellow_mask_center
             print("red: ", pose["red"])
             print("Yellow: ",pose["yellow"])
-            
-            # pose = red_mask_center + yellow_mask_center    
-
-            for i in range(len(red_mask_center)) :
-                cv2.circle(rgb_image, (int(red_mask_center[i][0]), int(red_mask_center[i][1])), int(red_mask_radius[i]),(0, 255, 255), 2)
-                cv2.circle(rgb_image, red_mask_center[i], 5, (0, 0, 255), -1)
-
-            for i in range(len(yellow_mask_center)) :
-                cv2.circle(rgb_image, (int(yellow_mask_center[i][0]), int(yellow_mask_center[i][1])), int(yellow_mask_radius[i]),(0, 255, 255), 2)
-                cv2.circle(rgb_image, yellow_mask_center[i], 5, (0, 0, 255), -1)        
-    
             return pose
         except:
             print("Except")
