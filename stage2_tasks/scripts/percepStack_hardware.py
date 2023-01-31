@@ -1,27 +1,9 @@
 #! /usr/bin/env python3
 
-'''
-*****************************************************************************************
-*
-*        		===============================================
-*           		Krishi Bot (KB) Theme (eYRC 2022-23)
-*        		===============================================
-*
-*  This script is to implement Task 2.2 of Krishi Bot (KB) Theme (eYRC 2022-23).
-*  
-*  This software is made available on an "AS IS WHERE IS BASIS".
-*  Licensee/end user indemnifies and will keep e-Yantra indemnified from
-*  any and all claim(s) that emanate from the use of the Software or 
-*  breach of the terms of this agreement.
-*
-*****************************************************************************************
-'''
-
 # Team ID:			[ 1133 ]
 # Author List:		[ Arjun K Haridas, Bhavay Garg , Ayan Goel , Divyansh Sharma ]
 # Filename:			percepStack.py
-# Functions:		
-# 					[ mask, img_clbk, depth_clbk, image_processing, main ]
+# Functions:		[ mask, img_clbk, depth_clbk, image_processing, main ]
 
 ####################### IMPORT MODULES #######################
 import cv2 
@@ -63,15 +45,10 @@ class PercepStack():
         self.yellow_pub=rospy.Publisher('/fruit_yellow', String, queue_size = 1)
         self.red_pub=rospy.Publisher('/fruit_red', String, queue_size = 1)
         self.found_pub=rospy.Publisher('/found', String, queue_size = 1)
-        self.yellow_posed = rospy.Subscriber('yellow_pepper' , String , self.callback_yellow)
         self.rgb_image, self.depth_image = None, None
         self.rgb_shape, self.depth_shape = None, None
         self.found=False
-        self.yellow_point = "False"
-
-    def callback_yellow(self , data) :
-        self.yellow_point = data.data
-
+        
     def rgb_callback(self, rgb_message) :
 
         np_arr = np.frombuffer(rgb_message.data, np.uint8)
@@ -108,13 +85,12 @@ class PercepStack():
         #pose_array = PoseArray(header=Header(frame_id = "camera_depth_frame2", stamp = rospy.Time(0)))
 
         X , Y , Z = 0 , 0, 0
-        ##print(len(pose["red"]),len(depth_val["red"]))
         for i in range(len(pose["red"])) :
             current_pose, current_depth = pose["red"][i], depth_val["red"][i]
             X = current_depth * ((current_pose[1]-cx)/fx)
             Y = current_depth * ((current_pose[0]-cy)/fy)
             Z = current_depth
-            ###print(X , Y , Z )
+            # print(X , Y , Z )
             transforms["red"].append([X,Y,Z])
         
         X , Y , Z = 0 , 0, 0
@@ -123,7 +99,7 @@ class PercepStack():
             Y = -1*current_depth * ((current_pose[1]-cx)/fx)
             Z = -1*current_depth * ((current_pose[0]-cy)/fy)
             X = current_depth
-            ###print(X , Y , Z )
+            # print(X , Y , Z )
             transforms["yellow"].append([X,Y,Z])
 
         rospy.loginfo(transforms)
@@ -151,8 +127,6 @@ class PercepStack():
 
         else:
             self.found=False
-            # self.child_id_red = ""
-            # self.child_id_yellow = ""
 
     def callback(self,depth_data, rgb_data) :
 
@@ -162,21 +136,15 @@ class PercepStack():
         self.red_peper = "Red_pepper"
         self.yellow_pepper = "Yellow_pepper"
 
-
         if self.found:
             self.red_pub.publish(str(self.XYZ["red"]))
             self.yellow_pub.publish(str(self.XYZ["yellow"]))
 
             for i in range(len(self.XYZ["red"])):
                 self.handle_turtle_pose(self.XYZ["red"][i][0],self.XYZ["red"][i][1],self.XYZ["red"][i][2] , self.red_peper)
-
-            
             
             for i in range(len(self.XYZ["yellow"])):
-
                 self.handle_turtle_pose(self.XYZ["yellow"][i][0],self.XYZ["yellow"][i][1],self.XYZ["yellow"][i][2] , self.yellow_pepper)
-
-
 
 
     # def transform_pose(self, src):
@@ -232,6 +200,7 @@ class PercepStack():
     #         tfm3 = tf2_msgs.msg.TFMessage([t3])
     #         self.pub_tf3.publish(tfm3)
 
+
     def mask(self, frame, lower, upper):
     
         obj_radius = []    
@@ -269,13 +238,10 @@ class PercepStack():
 
             rgb_image = self.rgb_image  
             
-        
             cv2.imshow("rgb",rgb_image)
             cv2.waitKey(1) 
-            #print(rgb_image.shape)
+            # print(rgb_image.shape)
 
-        
-        
             red_mask_center, red_mask_radius = self.mask(rgb_image, self.red_mask_lower, self.red_mask_upper)
             yellow_mask_center, yellow_mask_radius = self.mask(rgb_image, self.yellow_mask_lower, self.yellow_mask_upper)
             pose={}
@@ -283,7 +249,6 @@ class PercepStack():
             pose["yellow"]=yellow_mask_center
             print("red: ", pose["red"])
             print("Yellow: ",pose["yellow"])
-            #pose = red_mask_center + yellow_mask_center    
 
             for i in range(len(red_mask_center)) :
                 cv2.circle(rgb_image, (int(red_mask_center[i][0]), int(red_mask_center[i][1])), int(red_mask_radius[i]),(0, 255, 255), 2)
@@ -303,8 +268,8 @@ class PercepStack():
         depth_val = {"red":[],"yellow":[]}
         depth_array = np.array(self.depth_image, dtype=np.float32)
         
+        # print("POSE : ", pose)
         invalid=[]
-        ###print("POSE : ", pose)
         for i in range(len(pose["red"])):
             #x_center, y_center = int(pose[i][0]*(self.depth_shape[0]/self.rgb_shape[0])), int(pose[i][1]*(self.depth_shape[1]/self.rgb_shape[1]))
             x_center, y_center = int(pose["red"][i][0]), int(pose["red"][i][1])
