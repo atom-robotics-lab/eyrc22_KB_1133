@@ -226,7 +226,7 @@ class PercepStack():
             if radius > 10:
                 obj_radius.append(radius)
                 obj_center.append(list(center[::-1]))
-                cv2.circle(frame,obj_center[0][::-1],30,(0,0,255),2)
+                cv2.circle(frame,obj_center[0][::-1],30,(255,0,0),4)
                 cv2.imshow("Frame",frame)
                 cv2.waitKey(1)
         return [obj_center,obj_radius]
@@ -248,16 +248,7 @@ class PercepStack():
             pose["red"]=red_mask_center
             pose["yellow"]=yellow_mask_center
             print("red: ", pose["red"])
-            print("Yellow: ",pose["yellow"])
-
-            for i in range(len(red_mask_center)) :
-                cv2.circle(rgb_image, (int(red_mask_center[i][0]), int(red_mask_center[i][1])), int(red_mask_radius[i]),(0, 255, 255), 2)
-                cv2.circle(rgb_image, red_mask_center[i], 5, (0, 0, 255), -1)
-
-            for i in range(len(yellow_mask_center)) :
-                cv2.circle(rgb_image, (int(yellow_mask_center[i][0]), int(yellow_mask_center[i][1])), int(yellow_mask_radius[i]),(0, 255, 255), 2)
-                cv2.circle(rgb_image, yellow_mask_center[i], 5, (0, 0, 255), -1)        
-    
+            print("Yellow: ",pose["yellow"])    
             return pose
         except:
             pose={"red":[],"yellow":[]}
@@ -334,7 +325,7 @@ def main():
         ps.detect()
         
     # except Exception as e:
-        # ##print("Error:", str(e))    
+        # print("Error:", str(e))    
 
 
 if __name__=="__main__" :
