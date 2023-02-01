@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+
+<launch>
+    <!-- <node name="peppercatcher" pkg="eyrc-2022_krishibot" type="maniStack.py" output="screen"/>		 -->
+	<node name="Mani_Initializer" pkg="eyrc-2022_krishibot" type="manipulationHelp.py" output="screen"/> 
+    
+   
+    
+    <arg default="$(find ebot_description)/rvizfiles/hardware.rviz" name="rvizconfig"/>
+    <node args="-d $(arg rvizconfig)" name="rviz" pkg="rviz" required="true" type="rviz"/>
+
+</launch>
