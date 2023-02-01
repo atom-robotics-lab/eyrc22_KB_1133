@@ -76,18 +76,18 @@ class PercepStack():
         # print(len(pose["red"]),len(depth_val["red"]))
         for i in range(len(pose["red"])) :
             current_pose, current_depth = pose["red"][i], depth_val["red"][i]
-            X = current_depth * ((current_pose[1]-cx)/fx)
-            Y = current_depth * ((current_pose[0]-cy)/fy)
-            Z = current_depth
+            Z = current_depth * ((current_pose[1]-cx)/fx)* 0.001
+            X = -1*current_depth * ((current_pose[0]-cy)/fy)* 0.001
+            Y = -1*current_depth * 0.001
             # print(X , Y , Z )
             transforms["red"].append([X,Y,Z])
         
         X , Y , Z = 0 , 0, 0
         for i in range(len(pose["yellow"])) :
             current_pose, current_depth = pose["yellow"][i], depth_val["yellow"][i]
-            X = current_depth * ((current_pose[1]-cx)/fx)
-            Y = current_depth * ((current_pose[0]-cy)/fy)
-            Z = current_depth
+            Z = current_depth * ((current_pose[1]-cx)/fx)* 0.001
+            X = -1*current_depth * ((current_pose[0]-cy)/fy)* 0.001
+            Y = -1*current_depth * 0.001
             # print(X , Y , Z )
             transforms["yellow"].append([X,Y,Z])
         print(transforms)
