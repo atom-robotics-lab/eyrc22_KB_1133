@@ -202,15 +202,15 @@ class Ur5Moveit:
 
             return [],[]
 
-    def handle_turtle_pose(self, x , y, z ) :
-        br = tf.TransformBroadcaster()
-        br.sendTransform((x , y , z),
-                        (0,0,0,1),
-                        rospy.Time.now(),
-                        "lmaooooo",
-                        "ebot_base")
-        print(x ,y ,z )                
-        print("Transform broadcast")
+    # def handle_turtle_pose(self, x , y, z ) :
+    #     br = tf.TransformBroadcaster()
+    #     br.sendTransform((x , y , z),
+    #                     (0,0,0,1),
+    #                     rospy.Time.now(),
+    #                     "lmaooooo",
+    #                     "ebot_base")
+    #     print(x ,y ,z )                
+    #     print("Transform broadcast")
 
 def main():
 
@@ -221,7 +221,7 @@ def main():
         flag1 = False 
         attempt = 0 
         attempt2 = 0
-        arm_rotation = 1
+        arm_rotation = 0
         flag2 = False
         flag = False
 
@@ -246,20 +246,20 @@ def main():
             pose = left_inter_pose
             offset_interpose = 0.33
             offset_pose = 0.275
-            pose_x = 0.0004508026344099538
-            pose_y = -0.7052359925739942
-            pose_z = 6.833047234684549e-06
-            pose_w = 0.008059155505845033
+            # pose_x = 0.0004508026344099538
+            # pose_y = -0.7052359925739942
+            pose_z = 0
+            # pose_w = 0.008059155505845033
         else :
 
             pose = right_inter_pose
-            offset_interpose = - 0.27
-            offset_pose = - 0.32
+            offset_interpose = - 0.33
+            offset_pose = - 0.275
 
-            pose_x = -0.006533642089305424
+            # pose_x = -0.006533642089305424
             pose_y = 0.7477652292772122
-            pose_z = 0.00600077869549936
-            pose_w = 0.6639039569546898
+            pose_z = -1
+            # pose_w = 0.6639039569546898
 
         ms.print_pose_ee_joint()
         ms.set_joint_angles(pose)
@@ -284,31 +284,30 @@ def main():
             #     rospy.loginfo("outside of the red pose")
 
             if len(transform_red)!=0:
+
                 rospy.loginfo("Into the red pepper")
-                ms.handle_turtle_pose(transform_red[0] , transform_red[1] , transform_red[2])
+                # ms.handle_turtle_pose(transform_red[0] , transform_red[1] , transform_red[2])
                 
                 attempt2 = 0
-
-
 
                 red_pose_interpose = geometry_msgs.msg.Pose()
                 red_pose_interpose.position.x = round(transform_red[0] ,2 ) 
                 red_pose_interpose.position.y = round(transform_red[1] ,2 ) - offset_interpose
                 red_pose_interpose.position.z = round(transform_red[2] ,2 ) 
-                red_pose_interpose.orientation.x = pose_x
-                red_pose_interpose.orientation.y = pose_y
+                # red_pose_interpose.orientation.x = pose_x
+                # red_pose_interpose.orientation.y = pose_y
                 red_pose_interpose.orientation.z = pose_z
-                red_pose_interpose.orientation.w = pose_w
+                # red_pose_interpose.orientation.w = pose_w
 
                 red_pose = geometry_msgs.msg.Pose()
                 red_pose.position.x = round(transform_red[0] ,2 ) 
                 red_pose.position.y = round(transform_red[1] ,2 ) - offset_pose
                 red_pose.position.z = round(transform_red[2] ,2 ) 
 
-                red_pose.orientation.x = pose_x
-                red_pose.orientation.y = pose_y
+                # red_pose.orientation.x = pose_x
+                # red_pose.orientation.y = pose_y
                 red_pose.orientation.z = pose_z
-                red_pose.orientation.w = pose_w
+                # red_pose.orientation.w = pose_w
 
 
                 while not flag2 and attempt2 < 11 :
