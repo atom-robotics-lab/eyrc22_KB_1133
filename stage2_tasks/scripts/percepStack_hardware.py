@@ -58,8 +58,8 @@ class PercepStack():
             #self.rgb_image = self.bridge.imgmsg_to_cv2(rgb_message, desired_encoding = "bgr8")
             self.rgb_shape = self.rgb_image.shape
 
-        except:
-            print("try")
+        except Exception as e:
+            print("rgb_callback exception : ", e)
             pass
     
     def depth_callback(self, depth_message) :
@@ -254,7 +254,8 @@ class PercepStack():
             print("red: ", pose["red"])
             print("Yellow: ",pose["yellow"])    
             return pose
-        except:
+        except Exception as e:
+            print("rgb_image_processing exception : ", e)
             pose={"red":[],"yellow":[]}
             return pose
 
