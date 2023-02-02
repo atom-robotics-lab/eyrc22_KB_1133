@@ -24,6 +24,7 @@ import math
 
 class PercepStack():
     def __init__(self) -> None:
+
         self.red_mask_lower = (150, 109, 51)
         self.red_mask_upper = (179, 255, 255)
         
@@ -32,8 +33,8 @@ class PercepStack():
 
         self.bridge = CvBridge()
 
-        sub_rgb = message_filters.Subscriber("/camera/color/image_raw/compressed", CompressedImage)
-        sub_depth = message_filters.Subscriber("/camera/aligned_depth_to_color/image_raw", Image)
+        sub_rgb = message_filters.Subscriber("/camera/color/image_raw2", Image)
+        sub_depth = message_filters.Subscriber("/camera/depth/image_raw2", Image)
         ts = message_filters.ApproximateTimeSynchronizer([sub_depth, sub_rgb], queue_size=10, slop=0.5)
         ts.registerCallback(self.callback)
 
@@ -50,13 +51,16 @@ class PercepStack():
         self.found=False
         
     def rgb_callback(self, rgb_message) :
+        try :
+            np_arr = np.frombuffer(rgb_message.data, np.uint8)
+            self.rgb_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-        np_arr = np.frombuffer(rgb_message.data, np.uint8)
-        self.rgb_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            #self.rgb_image = self.bridge.imgmsg_to_cv2(rgb_message, desired_encoding = "bgr8")
+            self.rgb_shape = self.rgb_image.shape
 
-        #self.rgb_image = self.bridge.imgmsg_to_cv2(rgb_message, desired_encoding = "bgr8")
-        self.rgb_shape = self.rgb_image.shape
-
+        except:
+            print("try")
+            pass
     
     def depth_callback(self, depth_message) :
         self.depth_image = self.bridge.imgmsg_to_cv2(depth_message, desired_encoding=depth_message.encoding)
