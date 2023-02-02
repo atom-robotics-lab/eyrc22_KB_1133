@@ -262,7 +262,8 @@ def main():
             # pose_w = 0.6639039569546898
 
         ms.print_pose_ee_joint()
-        ms.set_joint_angles(pose)
+        ms.set_joint_angles(red_drop_pose)
+        ms.gripper_control(0)
         # rospy.sleep(2)
 
         while True:
