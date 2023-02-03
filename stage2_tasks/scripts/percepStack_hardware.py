@@ -33,8 +33,8 @@ class PercepStack():
 
         self.bridge = CvBridge()
 
-        sub_rgb = message_filters.Subscriber("/camera/color/image_raw2", Image)
-        sub_depth = message_filters.Subscriber("/camera/depth/image_raw2", Image)
+        sub_rgb = message_filters.Subscriber("/camera/color/image_raw", Image)
+        sub_depth = message_filters.Subscriber("/camera/aligned_depth_to_color/image_raw", Image)
         ts = message_filters.ApproximateTimeSynchronizer([sub_depth, sub_rgb], queue_size=10, slop=0.5)
         ts.registerCallback(self.callback)
 
@@ -53,9 +53,9 @@ class PercepStack():
     def rgb_callback(self, rgb_message) :
         try :
             np_arr = np.frombuffer(rgb_message.data, np.uint8)
-            self.rgb_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            # self.rgb_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-            #self.rgb_image = self.bridge.imgmsg_to_cv2(rgb_message, desired_encoding = "bgr8")
+            self.rgb_image = self.bridge.imgmsg_to_cv2(rgb_message, desired_encoding = "bgr8")
             self.rgb_shape = self.rgb_image.shape
 
         except Exception as e:
@@ -91,21 +91,22 @@ class PercepStack():
         X , Y , Z = 0 , 0, 0
         for i in range(len(pose["red"])) :
             current_pose, current_depth = pose["red"][i], depth_val["red"][i]
-            Z = current_depth * ((current_pose[1]-cx)/fx)* 0.001
-            X = -1*current_depth * ((current_pose[0]-cy)/fy)* 0.001
-            Y = -1*current_depth * 0.001
+            Y = -1*current_depth * ((current_pose[1]-cx)/fx)* 0.001
+            Z = -1*current_depth * ((current_pose[0]-cy)/fy)* 0.001
+            X = current_depth * 0.001
             # print(X , Y , Z )
             transforms["red"].append([X,Y,Z])
         
         X , Y , Z = 0 , 0, 0
         for i in range(len(pose["yellow"])) :
             current_pose, current_depth = pose["yellow"][i], depth_val["yellow"][i]
-            Z = current_depth * ((current_pose[1]-cx)/fx) * 0.001
-            X = -1*current_depth * ((current_pose[0]-cy)/fy) * 0.001
-            Y = -1*current_depth * 0.001
+            Y = -1*current_depth * ((current_pose[1]-cx)/fx) * 0.001
+            Z = -1*current_depth * ((current_pose[0]-cy)/fy) * 0.001
+            X = current_depth * 0.001
             # print(X , Y , Z )
             transforms["yellow"].append([X,Y,Z])
 
+        print("\nTRANSFORMS : \n")
         rospy.loginfo(transforms)
         return transforms
 
@@ -130,6 +131,7 @@ class PercepStack():
             self.child_id_yellow= "fruit_yellow_1"
 
         else:
+            print("detect function : length is less than 1")
             self.found=False
 
     def callback(self,depth_data, rgb_data) :
@@ -141,13 +143,16 @@ class PercepStack():
         self.yellow_pepper = "Yellow_pepper"
 
         if self.found:
+            #print("Callback : Pepper Found ")
             self.red_pub.publish(str(self.XYZ["red"]))
             self.yellow_pub.publish(str(self.XYZ["yellow"]))
 
             for i in range(len(self.XYZ["red"])):
+                #print("\nSend Red Transform : \n")
                 self.handle_turtle_pose(self.XYZ["red"][i][0],self.XYZ["red"][i][1],self.XYZ["red"][i][2] , self.red_peper)
             
             for i in range(len(self.XYZ["yellow"])):
+                #print("\nSend Yellow Transform : \n")
                 self.handle_turtle_pose(self.XYZ["yellow"][i][0],self.XYZ["yellow"][i][1],self.XYZ["yellow"][i][2] , self.yellow_pepper)
 
 
@@ -239,7 +244,6 @@ class PercepStack():
     def rgb_image_processing(self):
 
         try  :
-
             rgb_image = self.rgb_image  
             
             cv2.imshow("rgb",rgb_image)
@@ -254,6 +258,7 @@ class PercepStack():
             print("red: ", pose["red"])
             print("Yellow: ",pose["yellow"])    
             return pose
+
         except Exception as e:
             print("rgb_image_processing exception : ", e)
             pose={"red":[],"yellow":[]}

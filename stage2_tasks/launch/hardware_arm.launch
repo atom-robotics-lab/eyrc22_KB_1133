@@ -2,7 +2,7 @@
 
 <launch>
     <!-- <node name="peppercatcher" pkg="eyrc-2022_krishibot" type="maniStack.py" output="screen"/>		 -->
-	<node name="Mani_Initializer" pkg="eyrc-2022_krishibot" type="manipulationHelp.py" output="screen"/> 
+	<node name="Mani_Initializer" pkg="stage2_tasks" type="manipulationHelp.py" output="screen"/> 
     
    
     

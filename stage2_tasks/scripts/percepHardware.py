@@ -50,7 +50,7 @@ class PercepStack():
 
         self.bridge = CvBridge()
 
-        sub_rgb = message_filters.Subscriber("/camera/color/image_raw/compressed", CompressedImage)
+        sub_rgb = message_filters.Subscriber("/camera/color/image_raw", CompressedImage)
         sub_depth = message_filters.Subscriber("/camera/aligned_depth_to_color/image_raw", Image)
         ts = message_filters.ApproximateTimeSynchronizer([sub_depth, sub_rgb], queue_size=10, slop=0.5)
         ts.registerCallback(self.callback)

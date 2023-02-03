@@ -1,10 +1,6 @@
 #! /usr/bin/env python3
 
-
-
 import rospy
-
-
 import tf2_ros
 import tf2_msgs.msg
 import geometry_msgs.msg
@@ -134,6 +130,7 @@ class Ur5Moveit:
         
         self.req_pose_joint.publish() # Publishing as signal to request print the pose and joint angles
         rospy.wait_for_message("/joint_ee_pose", String, timeout=None) # wait till acknowledgment is recieved
+        print("/joint_ee_pose topic is now available!!!!")
 
         try:
             print("End-effector pose: \n", self.pose_and_joint_angles[0])
@@ -230,8 +227,8 @@ def main():
         red_drop_pose =  [-0.5719807786855355, -1.9448688909752914, 1.2759203567840753, 0.7128009359972172, 1.5576425501842497, -1.4519208990383037]
         yellow_drop_pose = [0.07924969282430361, -1.9447363113586276, 1.2759449175686086, 0.712764349676509, 1.5574983074550204, -1.452046107841527]
         right_inter_pose = [-1.5752570936587817, -2.0767219707225406, 1.3640831080452562, 0.7127025913258764, 1.5575267447673973, -1.451998526717846]
-        left_inter_pose = [1.5752570936587817, -2.076878954202689, 1.3639346359573432, 0.712704656343182, 1.5576326426846672, -1.4520968913530519]
-
+        left_inter_pose = [1.5576133728027344, -2.8006861845599573, 1.6631155014038086, 1.2057710886001587, 1.5707075595855713, -1.5712140242206019]
+        red_drop_1 = [math.radians(-30),math.radians(-124),math.radians(131),math.radians(0),math.radians(84),math.radians(-91)]
         pose1 = geometry_msgs.msg.Pose()
         pose1.position.x = 0.0
         pose1.position.y = 0.0
@@ -244,7 +241,7 @@ def main():
         if arm_rotation == 0:
 
             pose = left_inter_pose
-            offset_interpose = 0.33
+            offset_interpose = 0
             offset_pose = 0.275
             # pose_x = 0.0004508026344099538
             # pose_y = -0.7052359925739942
@@ -253,7 +250,7 @@ def main():
         else :
 
             pose = right_inter_pose
-            offset_interpose = - 0.33
+            offset_interpose = -0.6
             offset_pose = - 0.275
 
             # pose_x = -0.006533642089305424
@@ -262,7 +259,7 @@ def main():
             # pose_w = 0.6639039569546898
 
         ms.print_pose_ee_joint()
-        ms.set_joint_angles(red_drop_pose)
+        ms.set_joint_angles(pose)
         ms.gripper_control(0)
         # rospy.sleep(2)
 
@@ -293,22 +290,22 @@ def main():
 
                 red_pose_interpose = geometry_msgs.msg.Pose()
                 red_pose_interpose.position.x = round(transform_red[0] ,2 ) 
-                red_pose_interpose.position.y = round(transform_red[1] ,2 ) - offset_interpose
+                red_pose_interpose.position.y = round(transform_red[1] ,2 )
                 red_pose_interpose.position.z = round(transform_red[2] ,2 ) 
-                # red_pose_interpose.orientation.x = pose_x
-                # red_pose_interpose.orientation.y = pose_y
-                red_pose_interpose.orientation.z = pose_z
-                # red_pose_interpose.orientation.w = pose_w
+                red_pose_interpose.orientation.x = -0.5
+                red_pose_interpose.orientation.y = 0.5
+                red_pose_interpose.orientation.z = 0.5
+                red_pose_interpose.orientation.w = 0.5
 
                 red_pose = geometry_msgs.msg.Pose()
                 red_pose.position.x = round(transform_red[0] ,2 ) 
                 red_pose.position.y = round(transform_red[1] ,2 ) - offset_pose
                 red_pose.position.z = round(transform_red[2] ,2 ) 
 
-                # red_pose.orientation.x = pose_x
-                # red_pose.orientation.y = pose_y
-                red_pose.orientation.z = pose_z
-                # red_pose.orientation.w = pose_w
+                red_pose.orientation.x = -0.5
+                red_pose.orientation.y = 0.5
+                red_pose.orientation.z = 0.5
+                red_pose.orientation.w = 0.5
 
 
                 while not flag2 and attempt2 < 11 :
