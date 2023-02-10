@@ -226,41 +226,44 @@ def main():
 
         red_drop_pose =  [-0.5719807786855355, -1.9448688909752914, 1.2759203567840753, 0.7128009359972172, 1.5576425501842497, -1.4519208990383037]
         yellow_drop_pose = [0.07924969282430361, -1.9447363113586276, 1.2759449175686086, 0.712764349676509, 1.5574983074550204, -1.452046107841527]
-        right_inter_pose = [-1.5752570936587817, -2.0767219707225406, 1.3640831080452562, 0.7127025913258764, 1.5575267447673973, -1.451998526717846]
-        left_inter_pose = [1.5576133728027344, -2.8006861845599573, 1.6631155014038086, 1.2057710886001587, 1.5707075595855713, -1.5712140242206019]
+
+
+        # right_inter_pose = [-1.5752570936587817, -2.0767219707225406, 1.3640831080452562, 0.7127025913258764, 1.5575267447673973, -1.451998526717846]
+        # left_inter_pose = [1.5576133728027344, -2.8006861845599573, 1.6631155014038086, 1.2057710886001587, 1.5707075595855713, -1.5712140242206019]
+
+        left_inter_pose = [math.radians(90),math.radians(-153),math.radians(90),math.radians(63),math.radians(80),math.radians(-90)]
+        right_inter_pose = [math.radians(-90),math.radians(-153),math.radians(90),math.radians(63),math.radians(80),math.radians(-90)]
+
         red_drop_1 = [math.radians(-30),math.radians(-124),math.radians(131),math.radians(0),math.radians(84),math.radians(-91)]
-        pose1 = geometry_msgs.msg.Pose()
-        pose1.position.x = 0.0
-        pose1.position.y = 0.0
-        pose1.position.z = 0.01
-        pose1.orientation.x = 0
-        pose1.orientation.y = 0
-        pose1.orientation.z = 0
+        yellow_drop_1 = [math.radians(18),math.radians(-124),math.radians(131),math.radians(0),math.radians(84),math.radians(-91)]
 
 
         if arm_rotation == 0:
 
             pose = left_inter_pose
-            offset_interpose = 0
+            offset_interpose = 0.33
             offset_pose = 0.275
+            orientation_w = 0.5
+            orientation_z = 0.5
             # pose_x = 0.0004508026344099538
             # pose_y = -0.7052359925739942
-            pose_z = 0
+            # pose_z = 0
             # pose_w = 0.008059155505845033
         else :
 
             pose = right_inter_pose
-            offset_interpose = -0.6
+            offset_interpose = -0.33
             offset_pose = - 0.275
-
+            orientation_w = -0.5
+            orientation_z = -0.5
             # pose_x = -0.006533642089305424
-            pose_y = 0.7477652292772122
-            pose_z = -1
+            # pose_y = 0.7477652292772122
+            # pose_z = -1
             # pose_w = 0.6639039569546898
 
         ms.print_pose_ee_joint()
         ms.set_joint_angles(pose)
-        ms.gripper_control(0)
+        # ms.gripper_control(0)
         # rospy.sleep(2)
 
         while True:
@@ -290,12 +293,12 @@ def main():
 
                 red_pose_interpose = geometry_msgs.msg.Pose()
                 red_pose_interpose.position.x = round(transform_red[0] ,2 ) 
-                red_pose_interpose.position.y = round(transform_red[1] ,2 )
+                red_pose_interpose.position.y = round(transform_red[1] ,2 ) - offset_interpose
                 red_pose_interpose.position.z = round(transform_red[2] ,2 ) 
                 red_pose_interpose.orientation.x = -0.5
                 red_pose_interpose.orientation.y = 0.5
-                red_pose_interpose.orientation.z = 0.5
-                red_pose_interpose.orientation.w = 0.5
+                red_pose_interpose.orientation.z = orientation_z
+                red_pose_interpose.orientation.w = orientation_w
 
                 red_pose = geometry_msgs.msg.Pose()
                 red_pose.position.x = round(transform_red[0] ,2 ) 
@@ -304,8 +307,8 @@ def main():
 
                 red_pose.orientation.x = -0.5
                 red_pose.orientation.y = 0.5
-                red_pose.orientation.z = 0.5
-                red_pose.orientation.w = 0.5
+                red_pose.orientation.z = orientation_z
+                red_pose.orientation.w = orientation_w
 
 
                 while not flag2 and attempt2 < 11 :
@@ -324,7 +327,7 @@ def main():
                     print("fruit_red_Plucked")
 
                 ms.gripper_control(1)
-                ms.set_joint_angles(red_drop_pose) 
+                ms.set_joint_angles(red_drop_1) 
                 ms.gripper_control(0)
                 # ms.set_joint_angles(pose)
                 ms.pluck_pub.publish("Move")
@@ -339,21 +342,29 @@ def main():
 
                 yellow_pose = geometry_msgs.msg.Pose()
                 yellow_pose.position.x = round(transform_yellow[0] ,2 ) 
-                yellow_pose.position.y = round(transform_yellow[1] ,2 ) 
+                yellow_pose.position.y = round(transform_yellow[1] ,2 ) - offset_interpose
                 yellow_pose.position.z = round(transform_yellow[2] ,2 ) 
-                yellow_pose.orientation.z = pose_z
+                # yellow_pose.orientation.z = pose_z
+
+
+                yellow_pose.orientation.x = -0.5
+                yellow_pose.orientation.y= 0.5
+                yellow_pose.orientation.z= orientation_z
+                yellow_pose.orientation.w = orientation_w
 
                 yellow_inter_pose = geometry_msgs.msg.Pose()
                 yellow_inter_pose.position.x = round(transform_yellow[0] ,2 ) 
-                yellow_inter_pose.position.y = round(transform_yellow[1] ,2 ) 
+                yellow_inter_pose.position.y = round(transform_yellow[1] ,2 ) - offset_pose
                 yellow_inter_pose.position.z = round(transform_yellow[2] ,2 ) 
-                yellow_inter_pose.orientation.z = pose_z
+                # yellow_inter_pose.orientation.z = pose_z
+
+                yellow_inter_pose.orientation.x = -0.5
+                yellow_inter_pose.orientation.y = 0.5
+                yellow_inter_pose.orientation.z = orientation_z                
+                yellow_inter_pose.orientation.w = orientation_w
 
                 #print(detect_pose)    
-
                 # rospy.loginfo("Trying to go to the pose")
-
-
 
                 while not flag1 and attempt < 11 :
 
@@ -371,7 +382,7 @@ def main():
                     print("fruit_yellow_Plucked")
                 
                 ms.gripper_control(1)
-                ms.set_joint_angles(yellow_drop_pose) 
+                ms.set_joint_angles(yellow_drop_1) 
                 ms.gripper_control(0)
                 # ms.set_joint_angles(pose)
                 # ms.pluck_pub.publish("True")
