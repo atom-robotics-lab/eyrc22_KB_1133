@@ -24,7 +24,7 @@ class kb_navigation:
         self.pub_ = rospy.Publisher('/cmd_vel', Twist, queue_size=1)        
         self.sub = rospy.Subscriber('ebot/laser/scan', LaserScan, self.clbk_laser)
 
-    def clbk_laser(msg,self):
+    '''def clbk_laser(msg,self):
         laser_data = list(msg.ranges)
         
         for i in range(len(msg.ranges)):
@@ -39,7 +39,26 @@ class kb_navigation:
         'left':   min(min(laser_data[434:531]), 8.0),
         }
 
+        self.take_action()'''
+
+    def clbk_laser(msg,self):
+        laser_data = list(msg.ranges)
+        
+        for i in range(len(msg.ranges)):
+            if(laser_data[i] <= 0.1):
+                laser_data[i] = 100.0
+
+        self.regions = {
+            'right':  min(min(msg.ranges[0:120]), 10), 
+            'fright': min(min(msg.ranges[145:288]), 10), 
+            'front':  min(min(msg.ranges[280:440]), 10), 
+            'fleft':  min(min(msg.ranges[433:576]), 10), 
+            'left':   min(min(msg.ranges[600:719]), 10),
+            'straight' : min(min(msg.ranges[350:370]), 10)
+        }
+
         self.take_action()
+    
 
     def move(self,linear,angular):
         velocity_msg = Twist()
