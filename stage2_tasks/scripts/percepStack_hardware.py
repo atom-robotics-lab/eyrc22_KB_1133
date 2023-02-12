@@ -127,11 +127,14 @@ class PercepStack():
         if l>=1:
             self.found=True
             self.found_pub.publish("Stop")
+            rospy.loginfo("STOP")
             self.child_id_red = "fruit_red_1"
             self.child_id_yellow= "fruit_yellow_1"
 
         else:
             print("detect function : length is less than 1")
+            self.found_pub.publish("Move")
+            rospy.loginfo("Move")
             self.found=False
 
     def callback(self,depth_data, rgb_data) :
@@ -275,29 +278,32 @@ class PercepStack():
             x_center, y_center = int(pose["red"][i][0]*(self.depth_shape[0]/self.rgb_shape[0])), int(pose["red"][i][1]*(self.depth_shape[1]/self.rgb_shape[1]))
             # x_center, y_center = int(pose["red"][i][0]), int(pose["red"][i][1])
             print(depth_array[x_center, y_center])
-            depth_val["red"].append(depth_array[x_center, y_center])  
+            
 
-        #     if depth_array[x_center, y_center] <=0.77 :
-        #         depth_val["red"].append(depth_array[x_center, y_center])  
-        #     else:
-        #         invalid.append(pose["red"][i])
-        # for i in invalid:
-        #     pose["red"].remove(i)
+            # depth_val["red"].append(depth_array[x_center, y_center])  
+            if depth_array[x_center, y_center] <=1500 :
+                depth_val["red"].append(depth_array[x_center, y_center])  
+            else:
+                invalid.append(pose["red"][i])
+                print("Depth filter removed a red pose")
+        for i in invalid:
+            pose["red"].remove(i)
         
         invalid=[]
         for i in range(len(pose["yellow"])):
             x_center, y_center = int(pose["yellow"][i][0]*(self.depth_shape[0]/self.rgb_shape[0])), int(pose["yellow"][i][1]*(self.depth_shape[1]/self.rgb_shape[1]))
             # x_center, y_center = int(pose["yellow"][i][0]), int(pose["yellow"][i][1])
-            print("depth")
             print(depth_array[x_center, y_center])
-            depth_val["yellow"].append(depth_array[x_center, y_center]) 
-
-        #     if depth_array[x_center, y_center] <=0.78 :
-        #         depth_val["yellow"].append(depth_array[x_center, y_center]) 
-        #     else:
-        #         invalid.append(pose["yellow"][i]) 
-        # for i in invalid:
-        #     pose["yellow"].remove(i)
+            
+            
+            # depth_val["yellow"].append(depth_array[x_center, y_center]) 
+            if depth_array[x_center, y_center] <=1500 :
+                depth_val["yellow"].append(depth_array[x_center, y_center]) 
+            else:
+                invalid.append(pose["yellow"][i])
+                print("Depth filter removed a yellow pose")
+        for i in invalid:
+            pose["yellow"].remove(i)
 
         return depth_val
 
