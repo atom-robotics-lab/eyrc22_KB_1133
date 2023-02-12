@@ -3,6 +3,8 @@
 import rospy
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
+from std_msgs.msg import String
+import time
 
 class kb_navigation:
     def __init__(self):
@@ -14,17 +16,48 @@ class kb_navigation:
         'left': 0
         }
 
-        self.linear_velocity = 0.7
-        self.kp = 1
+        
+        self.linear_p = 0.5
+        self.angular_p = 0.1
+
+
         self._State = 0
+        self.linear_velocity = 0.5
 
         self.message = Twist
 
         rospy.init_node('kb_navigation')
         self.pub_ = rospy.Publisher('/cmd_vel', Twist, queue_size=1)        
         self.sub = rospy.Subscriber('ebot/laser/scan', LaserScan, self.clbk_laser)
+        self.pepper_found = rospy.Subscriber("/found", String, self.pepper_found_clbk)
 
-    '''def clbk_laser(msg,self):
+        self.pepper_found_flag = True
+
+    def pepper_found_clbk(self, msg) :
+        msg = msg.data
+
+        if msg == "Stop" and self.pepper_found_flag == False:
+            self.pepper_found_flag = True        	
+            start = time.time()
+            end = time.time()
+
+            while (end-start < 2) :      
+                print("Waiting for {} seconds".format(end-start))              
+                self.move(0, 0)
+                end = time.time()
+            print("Start Moving")
+            
+        if msg == "Stop" and self.pepper_found_flag == True:
+            print("Bot is already stopped")
+        
+        if msg == "Move" :
+            self.pepper_found_flag = False
+            
+
+
+
+
+    def clbk_laser(self, msg):
         laser_data = list(msg.ranges)
         
         for i in range(len(msg.ranges)):
@@ -39,26 +72,18 @@ class kb_navigation:
         'left':   min(min(laser_data[434:531]), 8.0),
         }
 
-        self.take_action()'''
+        #print("callback")
 
-    def clbk_laser(msg,self):
-        laser_data = list(msg.ranges)
-        
-        for i in range(len(msg.ranges)):
-            if(laser_data[i] <= 0.1):
-                laser_data[i] = 100.0
-
-        self.regions = {
-            'right':  min(min(msg.ranges[0:120]), 10), 
-            'fright': min(min(msg.ranges[145:288]), 10), 
-            'front':  min(min(msg.ranges[280:440]), 10), 
-            'fleft':  min(min(msg.ranges[433:576]), 10), 
-            'left':   min(min(msg.ranges[600:719]), 10),
-            'straight' : min(min(msg.ranges[350:370]), 10)
-        }
+        '''self.regions_ = {
+            'right':  min(min(msg.ranges[0:120]), 8), 
+            'fright': min(min(msg.ranges[145:288]), 8), 
+            'front':  min(min(msg.ranges[280:440]), 8), 
+            'fleft':  min(min(msg.ranges[433:576]), 8), 
+            'left':   min(min(msg.ranges[600:719]), 8),
+            'straight' : min(max(msg.ranges[350:370]), 8)
+        }'''
 
         self.take_action()
-    
 
     def move(self,linear,angular):
         velocity_msg = Twist()
@@ -67,14 +92,38 @@ class kb_navigation:
         self.pub_.publish(velocity_msg)
 
     def take_action(self):
-        position_error = self.regions_['left'] - self.regions_['right']
 
-        if position_error == 0 :
-            self._State = 0 
+        try :
+            if self.regions_['front'] < 1.0 :
+                print("Stop!! Wall in front")
+                self.move(0, 0)
 
-        else :
-            self.angular_velocity = self.kp*position_error
-            self._State = 1
+            elif self.regions_['left'] > 1 and self.regions_['right'] > 1 :
+                print("Go Straight, no trough found")
+                self.move(self.linear_p, 0)        
+
+            else :
+
+                position_error = self.regions_['left'] - self.regions_['right']
+                #print("Left : ", self.regions_['left'])
+
+                if position_error == 0 :
+                    print("Go Straight")
+                    self.move(self.linear_p, 0)
+                    #self._State = 0 
+
+                else :
+                    if position_error>0 :
+                        print("Turning Left")
+                    else:
+                        print("Turning Right")
+
+                    self.angular_velocity = self.angular_p*position_error
+                    self.move(self.linear_p, self.angular_velocity)
+
+        except :
+            print("Waiting for Laser Scan data")
+                    
 
 
 '''def main():
@@ -88,7 +137,6 @@ class kb_navigation:
 
 if __name__ == '__main__':
     kb_nav = kb_navigation()
-    kb_nav.move(kb_nav.linear_velocity , 0 )
-    kb_nav.main()
+    kb_nav.take_action()
+    rospy.spin()
  
-
