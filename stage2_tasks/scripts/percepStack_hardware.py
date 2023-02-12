@@ -133,6 +133,8 @@ class PercepStack():
 
         else:
             print("detect function : length is less than 1")
+            self.found_pub.publish("Move")
+            rospy.loginfo("Move")
             self.found=False
 
     def callback(self,depth_data, rgb_data) :
