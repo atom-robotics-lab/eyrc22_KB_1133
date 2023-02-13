@@ -262,7 +262,8 @@ def main():
             # pose_w = 0.6639039569546898
 
         ms.print_pose_ee_joint()
-        ms.set_joint_angles(pose)
+        ms.set_joint_angles(left_inter_pose)
+        rospy.loginfo("At the left pose")
         # ms.gripper_control(0)
         # rospy.sleep(2)
 
