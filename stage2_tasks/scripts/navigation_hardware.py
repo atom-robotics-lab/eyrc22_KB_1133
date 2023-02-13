@@ -36,22 +36,25 @@ class kb_navigation:
     def pepper_found_clbk(self, msg) :
         msg = msg.data
 
-        if msg == "Stop" and self.pepper_found_flag == False:
-            self.pepper_found_flag = True        	
-            start = time.time()
-            end = time.time()
-
-            while (end-start < 2) :      
-                print("Waiting for {} seconds".format(end-start))              
-                self.move(0, 0)
+        try : 
+            if msg == "Stop" and self.pepper_found_flag == False:
+                self.pepper_found_flag = True        	
+                start = time.time()
                 end = time.time()
-            print("Start Moving")
+
+                while (end-start < 2) :      
+                    print("Waiting for {} seconds".format(end-start))              
+                    self.move(0, 0)
+                    end = time.time()
+                print("Start Moving")
             
-        if msg == "Stop" and self.pepper_found_flag == True:
-            print("Bot is already stopped")
+            if msg == "Stop" and self.pepper_found_flag == True:
+                print("Bot is already stopped")
         
-        if msg == "Move" :
-            self.pepper_found_flag = False
+            if msg == "Move" :
+                self.pepper_found_flag = False
+        except :
+            print("Exception in pepper_found_clbk")
             
 
 
