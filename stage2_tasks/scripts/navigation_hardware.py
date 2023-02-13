@@ -17,7 +17,7 @@ class kb_navigation:
         }
 
         
-        self.linear_p = 0.5
+        self.linear_p = 0.1
         self.angular_p = 0.1
 
 
@@ -42,7 +42,7 @@ class kb_navigation:
                 start = time.time()
                 end = time.time()
 
-                while (end-start < 2) :      
+                while (end-start < 3) :      
                     print("Waiting for {} seconds".format(end-start))              
                     self.move(0, 0)
                     end = time.time()
@@ -105,6 +105,7 @@ class kb_navigation:
                 print("Go Straight, no trough found")
                 self.move(self.linear_p, 0)        
 
+
             else :
 
                 position_error = self.regions_['left'] - self.regions_['right']
@@ -114,6 +115,11 @@ class kb_navigation:
                     print("Go Straight")
                     self.move(self.linear_p, 0)
                     #self._State = 0 
+
+                elif self.regions_['left'] > 2.5 :
+                    rospy.loginfo("into the left")
+                    self.move(0.06 , 0.09)
+                
 
                 else :
                     if position_error>0 :
