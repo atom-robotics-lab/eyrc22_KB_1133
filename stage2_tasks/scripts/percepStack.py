@@ -27,7 +27,7 @@ class PercepStack():
         self.red_mask_lower = (150, 109, 51)
         self.red_mask_upper = (179, 255, 255)
         
-        self.yellow_mask_lower = (10, 134, 146)
+        self.yellow_mask_lower = (2, 125, 132)
         self.yellow_mask_upper = (24, 255, 255)    
 
         self.bridge = CvBridge()
