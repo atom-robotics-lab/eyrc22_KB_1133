@@ -186,16 +186,19 @@ class Ur5Moveit:
             rospy.loginfo("in the transform function")
             transform = []
             #trans = self.tf_buffer.lookup_transform('ebot_base' , 'fruit_red' , rospy.Time())
-            listener = tf.TransformListener()
-            listener.waitForTransform("ebot_base", src, rospy.Time(), rospy.Duration(1.0))
-            (trans, rot) = listener.lookupTransform('ebot_base', src,rospy.Time())
+            listener_1 = tf.TransformListener()
+            rospy.loginfo("first")
+            # listener_1.waitForTransform("ebot_base", src, rospy.Time(), rospy.Duration(0.5))
+            rospy.loginfo("second")
+            (trans, rot) = listener_1.lookupTransform('ebot_base', src,rospy.Time())
 
-
+            rospy.loginfo("Third")
             #print("TRANSFORM :" , trans, rot)
             rospy.loginfo(trans)
             return trans, rot
 
-        except:
+        except Exception as e:
+            print("exception in transform_pose : ", str(e))
 
             return [],[]
 
@@ -242,7 +245,7 @@ def main():
 
             pose = left_inter_pose
             offset_interpose = 0.33
-            offset_pose = 0.275
+            offset_pose = 0.265
             orientation_w = 0.5
             orientation_z = 0.5
             # pose_x = 0.0004508026344099538
@@ -253,16 +256,16 @@ def main():
 
             pose = right_inter_pose
             offset_interpose = -0.33
-            offset_pose = - 0.275
+            offset_pose = - 0.262
             orientation_w = -0.5
             orientation_z = -0.5
-            # pose_x = -0.006533642089305424
+            # pose_x = -0.006533642089305424z
             # pose_y = 0.7477652292772122
             # pose_z = -1
             # pose_w = 0.6639039569546898
 
         ms.print_pose_ee_joint()
-        ms.set_joint_angles(right_inter_pose)
+        ms.set_joint_angles(left_inter_pose)
         rospy.loginfo("At the left pose")
         # ms.gripper_control(0)
         # rospy.sleep(2)
@@ -293,7 +296,7 @@ def main():
                 attempt2 = 0
 
                 red_pose_interpose = geometry_msgs.msg.Pose()
-                red_pose_interpose.position.x = round(transform_red[0] ,2 ) 
+                red_pose_interpose.position.x = round(transform_red[0] ,2 ) - 0.1
                 red_pose_interpose.position.y = round(transform_red[1] ,2 ) - offset_interpose
                 red_pose_interpose.position.z = round(transform_red[2] ,2 ) 
                 red_pose_interpose.orientation.x = -0.5
