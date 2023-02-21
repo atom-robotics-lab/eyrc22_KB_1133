@@ -51,7 +51,7 @@ class KB_Navigation:
         self.turn_flag = False      # Turn Flag
         self.turn_direction = 1     # Turn direction
 
-        self.n_turns = 2            # No. of turns
+        self.n_turns = 0            # No. of turns
 
         self.rotate_wall_dist = 0.5 # Distance from wall while turning
 
@@ -133,7 +133,7 @@ class KB_Navigation:
 
         try :
 
-            if (self.regions['left'] < 0.9 and self.regions['right'] > 0.9) and (not self.turn_flag) :
+            '''if (self.regions['left'] < 0.9 and self.regions['right'] > 0.9) and (not self.turn_flag) :
                 self.change_state(6)
 
             elif (self.regions['right'] < 0.9 and self.regions['left'] > 0.9) and (not self.turn_flag) :
@@ -142,10 +142,10 @@ class KB_Navigation:
 
             elif ((self.regions['fright'] < 1 and self.regions['right'] < 1) or (self.regions['fleft'] < 1 and self.regions['left'] < 1)) and (not self.turn_flag):
                 #print("Going Straight !!")
-                self.change_state(2)
+                self.change_state(2)'''
 
 
-            elif self.regions['straight'] < 1.5 or self.turn_flag:
+            if self.regions['straight'] < 1.5 or self.turn_flag:
                 self.turn_flag = True
 
                 if self.n_turns != 2 :
