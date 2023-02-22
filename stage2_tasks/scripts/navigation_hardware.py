@@ -67,7 +67,7 @@ class kb_navigation:
             if(laser_data[i] <= 0.1):
                 laser_data[i] = 100.0
 
-        self.regions_ = {
+        self.regions = {
         'right':  min(min(laser_data[0:106]), 8.0),
         'fright': min(laser_data[44], 10),
         'front':  min(min(laser_data[221:309]), 8.0),

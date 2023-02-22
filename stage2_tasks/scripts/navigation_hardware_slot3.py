@@ -53,7 +53,7 @@ class KB_Navigation:
 
         self.n_turns = 0            # No. of turns
 
-        self.rotate_wall_dist = 0.5 # Distance from wall while turning
+        self.rotate_wall_dist = 0.8 # Distance from wall while turning
 
     def pepper_found_clbk(self, msg) :
         msg = msg.data
@@ -102,18 +102,19 @@ class KB_Navigation:
         }'''
 
         # Regions for Hardware
-        self.regions_ = {
+        self.regions = {
         'right':  min(min(laser_data[0:106]), 8.0),
         'fright': min(laser_data[44], 10),
         'front':  min(min(laser_data[221:309]), 8.0),
         'fleft':  min(laser_data[134], 10),
         'left':   min(min(laser_data[434:531]), 8.0),
+        'straight' : min(min(laser_data[261:269]), 8.0)
         }
 
 
 
         
-        #print("\nLEFT : ", self.regions['left'], "FLEFT : ", self.regions['fleft'], "STRAIGHT : ", self.regions['straight'], "FRIGHT : ", self.regions['fright'], "RIGHT : ", self.regions['right'], "\n")
+        print("\nLEFT : ", self.regions['left'], "FLEFT : ", self.regions['fleft'], "STRAIGHT : ", self.regions['straight'], "FRIGHT : ", self.regions['fright'], "RIGHT : ", self.regions['right'], "\n")
 
         self.take_action()
         
@@ -140,8 +141,11 @@ class KB_Navigation:
                 self.change_state(7)'''
 
 
-            if ((self.regions['fright'] < 1 and self.regions['right'] < 1) or (self.regions['fleft'] < 1 and self.regions['left'] < 1)) and (not self.turn_flag):
+            if ((self.regions['fright'] < 1.2 and self.regions['right'] < 1) or (self.regions['fleft'] < 1.2 and self.regions['left'] < 1)) and (not self.turn_flag):
                 #print("Going Straight !!")
+                self.change_state(2)
+            
+            elif (self.regions['fright'] < 2.8 and self.regions['fleft'] < 1.2) and (not self.turn_flag) :
                 self.change_state(2)
 
 
@@ -151,14 +155,14 @@ class KB_Navigation:
                 if self.n_turns != 2 :
                     self.change_state(1)
 
-                    if (self.regions['fleft'] < 1 and self.regions['straight'] == 8) or (self.regions['fright'] < 1 and self.regions['straight'] == 8) :
+                    if (self.regions['fleft'] < 1 and self.regions['straight'] >=7) or (self.regions['fright'] < 1 and self.regions['straight'] >= 7) :
                         print("Left Turn Completed !")
                         self.n_turns += 1
                         self.turn_flag = False
                 else:
                     self.change_state(3)
 
-                    if (self.regions['fleft'] < 1.3 and self.regions['straight'] == 8) or (self.regions['fright'] < 1.3 and self.regions['straight'] == 8) :
+                    if (self.regions['fleft'] < 1.3 and self.regions['straight'] >=7) or (self.regions['fright'] < 1.3 and self.regions['straight'] >=7) :
                         print("Right Turn Completed !")
                         self.n_turns += 1
                         self.turn_flag = False
