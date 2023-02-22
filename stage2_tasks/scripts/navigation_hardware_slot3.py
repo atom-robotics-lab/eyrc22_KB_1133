@@ -137,15 +137,15 @@ class KB_Navigation:
                 self.change_state(6)
 
             elif (self.regions['right'] < 0.9 and self.regions['left'] > 0.9) and (not self.turn_flag) :
-                self.change_state(7)
+                self.change_state(7)'''
 
 
-            elif ((self.regions['fright'] < 1 and self.regions['right'] < 1) or (self.regions['fleft'] < 1 and self.regions['left'] < 1)) and (not self.turn_flag):
+            if ((self.regions['fright'] < 1 and self.regions['right'] < 1) or (self.regions['fleft'] < 1 and self.regions['left'] < 1)) and (not self.turn_flag):
                 #print("Going Straight !!")
-                self.change_state(2)'''
+                self.change_state(2)
 
 
-            if self.regions['straight'] < 1.5 or self.turn_flag:
+            elif self.regions['straight'] < 1.5 or self.turn_flag:
                 self.turn_flag = True
 
                 if self.n_turns != 2 :
