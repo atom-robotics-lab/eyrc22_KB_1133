@@ -10,7 +10,10 @@ import time
 class KB_Navigation:
 
     def __init__(self):
+
         self.pub_ = None
+        self.arm_pub = None
+        
         self.regions = {
             'right': 0,
             'fright': 0,
@@ -19,9 +22,11 @@ class KB_Navigation:
             'left': 0,
             'straight' : 0,
         }
+        
         self.state_ = 0
         self.flag = False
         self.direction = -1 
+        
         self.state_dict_ = {
             0: 'find the wall',
             1: 'turn left',
@@ -36,7 +41,9 @@ class KB_Navigation:
         self.message = Twist()
         
         rospy.init_node('Object_Avoider')
-        self.pub_ = rospy.Publisher('/cmd_vel', Twist, queue_size=1)        
+        
+        self.pub_ = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
+        self.arm_pub = rospy.Publisher('/arm_rotation', String, queue_size = 1)    
         self.sub = rospy.Subscriber('ebot/laser/scan', LaserScan, self.clbk_laser)
         self.pepper_found = rospy.Subscriber("/found", String, self.pepper_found_clbk)
 
@@ -54,6 +61,9 @@ class KB_Navigation:
         self.n_turns = 0            # No. of turns
 
         self.rotate_wall_dist = 0.8 # Distance from wall while turning
+
+    def arm_feedback(self) :        
+        self.arm_pub.publish("Rotate")
 
     def pepper_found_clbk(self, msg) :
         msg = msg.data
@@ -152,13 +162,19 @@ class KB_Navigation:
             elif self.regions['straight'] < 1.5 or self.turn_flag:
                 self.turn_flag = True
 
-                if self.n_turns != 2 :
+                if self.n_turns < 2 :
                     self.change_state(1)
 
                     if (self.regions['fleft'] < 1 and self.regions['straight'] >=7) or (self.regions['fright'] < 1 and self.regions['straight'] >= 7) :
                         print("Left Turn Completed !")
                         self.n_turns += 1
                         self.turn_flag = False
+
+                        if self.n_turns == 2 :
+                            print("Arm Feedback !!")
+                            self.arm_feedback()
+                            
+                
                 else:
                     self.change_state(3)
 
