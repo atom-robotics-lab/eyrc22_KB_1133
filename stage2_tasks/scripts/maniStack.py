@@ -347,7 +347,7 @@ def main():
                 # ms.gripper_control(1)
                 ms.set_joint_angles(red_drop_1) 
                 # ms.gripper_control(0)
-                # ms.set_joint_angles(pose)
+                ms.set_joint_angles(pose)
                 ms.pluck_pub.publish("Move")
 
                 if flag2 :
@@ -402,7 +402,7 @@ def main():
                 # ms.gripper_control(1)
                 ms.set_joint_angles(yellow_drop_1) 
                 # ms.gripper_control(0)
-                # ms.set_joint_angles(pose)
+                ms.set_joint_angles(pose)
                 # ms.pluck_pub.publish("True")
                 ms.pluck_pub.publish("Move")
 
