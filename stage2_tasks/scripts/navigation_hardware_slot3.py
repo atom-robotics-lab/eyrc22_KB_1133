@@ -82,13 +82,14 @@ class KB_Navigation:
             if msg == "Stop" and self.pepper_found_flag == False :
                 self.pepper_found_flag = True
 
-                start = time.time()
-                end = time.time()
+                # start = time.time()
+                # end = time.time()
 
-                while(end-start < 3) :
-                    print("Waiting for {} seconds".format(int(end-start)))
+                while(True) :
+                    # print("Waiting for {} seconds".format(int(end-start)))
                     self.move(0, 0)
-                    end = time.time()
+                    print("Stop")
+                    # end = time.time()
 
                 print("Start Moving")
 
