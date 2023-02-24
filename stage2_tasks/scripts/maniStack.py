@@ -255,7 +255,7 @@ def main():
 
         if ms.arm_rotation == 0:
 
-            pose = left_inter_pose
+            pose = right_inter_pose
             offset_interpose = 0.33
             offset_pose = 0.262
             orientation_w = 0.5
@@ -267,7 +267,7 @@ def main():
 
         else :
 
-            pose = right_inter_pose
+            pose = left_inter_pose
             offset_interpose = -0.33
             offset_pose = - 0.262
             orientation_w = -0.5
