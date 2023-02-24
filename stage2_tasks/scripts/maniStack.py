@@ -280,7 +280,7 @@ def main():
         ms.print_pose_ee_joint()
         ms.set_joint_angles(pose)
         rospy.loginfo("At the left pose")
-        ms.gripper_control(0)
+        # ms.gripper_control(0)
         # rospy.sleep(2)
 
         while True:
@@ -344,9 +344,9 @@ def main():
                 if flag2 :
                     print("fruit_red_Plucked")
 
-                ms.gripper_control(1)
+                # ms.gripper_control(1)
                 ms.set_joint_angles(red_drop_1) 
-                ms.gripper_control(0)
+                # ms.gripper_control(0)
                 # ms.set_joint_angles(pose)
                 ms.pluck_pub.publish("Move")
 
@@ -399,9 +399,9 @@ def main():
                 if flag1 :
                     print("fruit_yellow_Plucked")
                 
-                ms.gripper_control(1)
+                # ms.gripper_control(1)
                 ms.set_joint_angles(yellow_drop_1) 
-                ms.gripper_control(0)
+                # ms.gripper_control(0)
                 # ms.set_joint_angles(pose)
                 # ms.pluck_pub.publish("True")
                 ms.pluck_pub.publish("Move")

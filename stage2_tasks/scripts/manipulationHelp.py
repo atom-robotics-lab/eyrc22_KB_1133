@@ -45,7 +45,7 @@ class Ur5Moveit_help:
         self.pub_ee_pose_joint_wait_ack = pub_ee_pose_joint_wait_ack
 
         # Initaializing moveit_commander
-        self._planning_group = "manipulator"
+        self._planning_group = "arm"
         self._commander = moveit_commander.roscpp_initialize(sys.argv)
         self._robot = moveit_commander.RobotCommander()
         self._scene = moveit_commander.PlanningSceneInterface()
