@@ -62,13 +62,19 @@ class KB_Navigation:
         self.n_turns = 0            # No. of turns
 
         self.rotate_wall_dist = 0.8 # Distance from wall while turning
+        self.stop_counter = 0
 
     def joint_move_clbk(self , msg):
-        msg = msg.data 
+        msg1 = msg.data 
         try : 
-            joint_move = msg
-            while joint_move == "Stop" :
-                self.move(0,0)
+            joint_move = msg1
+            print(joint_move)
+            if joint_move == "Stop" :
+                self.stop_counter = 1 
+            elif joint_move == "Move" :
+                self.stop_counter = 0 
+            else : 
+                self.stop_counter = 0
         except: 
             print("Not even a single value is published")
 
@@ -82,16 +88,16 @@ class KB_Navigation:
             if msg == "Stop" and self.pepper_found_flag == False :
                 self.pepper_found_flag = True
 
-                # start = time.time()
-                # end = time.time()
+                # # start = time.time()
+                # # end = time.time()
 
-                while(True) :
-                    # print("Waiting for {} seconds".format(int(end-start)))
-                    self.move(0, 0)
-                    print("Stop")
-                    # end = time.time()
+                # while(True) :
+                #     # print("Waiting for {} seconds".format(int(end-start)))
+                #     self.move(0, 0)
+                #     print("Stop")
+                #     # end = time.time()
 
-                print("Start Moving")
+                # print("Start Moving")
 
             if msg == "Stop" and self.pepper_found_flag == True :
                 print("Bot is already stopped")
@@ -135,7 +141,7 @@ class KB_Navigation:
 
 
         
-        print("\nLEFT : ", self.regions['left'], "FLEFT : ", self.regions['fleft'], "STRAIGHT : ", self.regions['straight'], "FRIGHT : ", self.regions['fright'], "RIGHT : ", self.regions['right'], "\n")
+        # print("\nLEFT : ", self.regions['left'], "FLEFT : ", self.regions['fleft'], "STRAIGHT : ", self.regions['straight'], "FRIGHT : ", self.regions['fright'], "RIGHT : ", self.regions['right'], "\n")
 
         self.take_action()
         
@@ -162,17 +168,17 @@ class KB_Navigation:
                 self.change_state(7)'''
 
 
-            if ((self.regions['fright'] < 1.2 and self.regions['right'] < 1) or (self.regions['fleft'] < 1.2 and self.regions['left'] < 1)) and (not self.turn_flag):
+            if ((self.regions['fright'] < 1.2 and self.regions['right'] < 1) or (self.regions['fleft'] < 1.2 and self.regions['left'] < 1)) and (not self.turn_flag) and (self.stop_counter == 0 ):
                 #print("Going Straight !!")
                 self.change_state(2)
             
-            elif (self.regions['fright'] < 2.8 and self.regions['fleft'] < 1.2) and (not self.turn_flag) :
+            elif (self.regions['fright'] < 2.8 and self.regions['fleft'] < 1.2) and (not self.turn_flag) and (self.stop_counter == 0 ) :
                 self.change_state(2)
 
 
-            elif self.regions['straight'] < 1.5 or self.turn_flag:
+            elif (self.regions['straight'] < 1.5 or self.turn_flag ) and (self.stop_counter == 0 ):
                 self.turn_flag = True
-
+                print("stop counter" , self.stop_counter)
                 if self.n_turns < 2 :
                     self.change_state(1)
 
@@ -193,6 +199,12 @@ class KB_Navigation:
                         print("Right Turn Completed !")
                         self.n_turns += 1
                         self.turn_flag = False
+
+            elif self.stop_counter == 1 :
+
+                print("in the mani state" , self.stop_counter )
+                self.move(0 , 0)
+                self.change_state(5)
 
             else:
                 self.change_state(0)

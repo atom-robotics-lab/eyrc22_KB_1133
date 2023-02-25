@@ -21,10 +21,11 @@ class Ur5Moveit:
 
         self.tf_buffer = tf2_ros.Buffer()
         self.listener = tf2_ros.TransformListener(self.tf_buffer)
+        self.listener_1 = tf.TransformListener()
 
         self.arm_sub   = rospy.Subscriber("/arm_rotation" , String , self.arm_sub_callback)
         self.arm_rotation = 0
-        self.pluck_pub = rospy.Publisher("/joint_function" , String , queue_size=1)
+        self.pluck_pub = rospy.Publisher("/joint_function" , String , queue_size=10)
         self.ack_val = 0                # keeping it as default state in zero, as it acknowledges the topic connection
         self.ack_val_poseJoint = 0      # for pose joint val ack
         self._eef_link = "wrist_3_link" # declaring end effector link for the clas manually
@@ -197,17 +198,15 @@ class Ur5Moveit:
             # self.listener.waitForTransform("ebot_base" , "pepper" , rospy.Time() , rospy.Duration(4.0))
             rospy.loginfo("in the transform function")
             transform = []
-            #trans = self.tf_buffer.lookup_transform('ebot_base' , 'fruit_red' , rospy.Time())
-            listener_1 = tf.TransformListener()
-            rospy.loginfo("first")
-            # listener_1.waitForTransform("ebot_base", src, rospy.Time(), rospy.Duration(0.5))
-            rospy.loginfo("second")
-            (trans, rot) = listener_1.lookupTransform('ebot_base', src,rospy.Time())
+            # trans = self.tf_buffer.lookup_transform('ebot_base' , src , rospy.Time())
+            # rospy.loginfo("first")
+            # rospy.loginfo("second")
+            (trans, rot) = self.listener_1.lookupTransform( 'ebot_base',src ,rospy.Time())
 
             rospy.loginfo("Third")
             #print("TRANSFORM :" , trans, rot)
             rospy.loginfo(trans)
-            return trans, rot
+            return trans , rot
 
         except Exception as e:
             print("exception in transform_pose : ", str(e))
@@ -246,8 +245,8 @@ def main():
         # right_inter_pose = [-1.5752570936587817, -2.0767219707225406, 1.3640831080452562, 0.7127025913258764, 1.5575267447673973, -1.451998526717846]
         # left_inter_pose = [1.5576133728027344, -2.8006861845599573, 1.6631155014038086, 1.2057710886001587, 1.5707075595855713, -1.5712140242206019]
 
-        left_inter_pose = [math.radians(90),math.radians(-137),math.radians(31),math.radians(102),math.radians(92),math.radians(-91)]
-        right_inter_pose = [math.radians(-90),math.radians(-153),math.radians(90),math.radians(63),math.radians(80),math.radians(-90)]
+        left_inter_pose = [math.radians(90),math.radians(-158),math.radians(85),math.radians(72),math.radians(97),math.radians(-91)]
+        right_inter_pose = [math.radians(-90),math.radians(-158),math.radians(85),math.radians(72),math.radians(97),math.radians(-91)]
 
         red_drop_1 = [math.radians(-30),math.radians(-124),math.radians(131),math.radians(0),math.radians(84),math.radians(-91)]
         yellow_drop_1 = [math.radians(18),math.radians(-124),math.radians(131),math.radians(0),math.radians(84),math.radians(-91)]
@@ -280,13 +279,13 @@ def main():
         ms.print_pose_ee_joint()
         ms.set_joint_angles(pose)
         rospy.loginfo("At the left pose")
-        ms.gripper_control(0)
+        # ms.gripper_control(0)
         # rospy.sleep(2)
 
         while True:
 
             transform_yellow, rot_yellow=ms.transform_pose("Yellow_pepper")
-            transform_red, rot_red=ms.transform_pose("Red_pepper")
+            transform_red , rot_red =ms.transform_pose("Red_pepper")
             ms.print_pose_ee_joint()
 
             # red_pose_interpose = geometry_msgs.msg.Pose()
@@ -383,7 +382,7 @@ def main():
 
                 #print(detect_pose)    
                 # rospy.loginfo("Trying to go to the pose")
-
+                attempt = 0
                 while not flag1 and attempt < 11 :
 
                     if attempt < 6:
