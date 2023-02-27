@@ -21,11 +21,8 @@ class Ur5Moveit:
 
         self.tf_buffer = tf2_ros.Buffer()
         self.listener = tf2_ros.TransformListener(self.tf_buffer)
-        self.listener_1 = tf.TransformListener()
 
-        self.arm_sub   = rospy.Subscriber("/arm_rotation" , String , self.arm_sub_callback)
-        self.arm_rotation = 0
-        self.pluck_pub = rospy.Publisher("/joint_function" , String , queue_size=10)
+
         self.ack_val = 0                # keeping it as default state in zero, as it acknowledges the topic connection
         self.ack_val_poseJoint = 0      # for pose joint val ack
         self._eef_link = "wrist_3_link" # declaring end effector link for the clas manually
@@ -50,16 +47,6 @@ class Ur5Moveit:
         self.req_pose_joint = rospy.Publisher("/joint_ee_pose_req", 
                                         Empty, queue_size=1)
         rospy.sleep(1)
-
-    def arm_sub_callback(self, msg):
-        msg = msg.data 
-        try :
-            if msg == "Rotate" :
-                self.arm_rotation = 1
-            else :
-                self.arm_rotation = 0
-        except:
-            print("No publisher found")
 
     def ack_clbck(self, msg):
         '''
@@ -198,15 +185,17 @@ class Ur5Moveit:
             # self.listener.waitForTransform("ebot_base" , "pepper" , rospy.Time() , rospy.Duration(4.0))
             rospy.loginfo("in the transform function")
             transform = []
-            # trans = self.tf_buffer.lookup_transform('ebot_base' , src , rospy.Time())
-            # rospy.loginfo("first")
-            # rospy.loginfo("second")
-            (trans, rot) = self.listener_1.lookupTransform( 'ebot_base',src ,rospy.Time())
+            #trans = self.tf_buffer.lookup_transform('ebot_base' , 'fruit_red' , rospy.Time())
+            listener_1 = tf.TransformListener()
+            rospy.loginfo("first")
+            # listener_1.waitForTransform("ebot_base", src, rospy.Time(), rospy.Duration(0.5))
+            rospy.loginfo("second")
+            (trans, rot) = listener_1.lookupTransform('ebot_base', src,rospy.Time())
 
             rospy.loginfo("Third")
             #print("TRANSFORM :" , trans, rot)
             rospy.loginfo(trans)
-            return trans , rot
+            return trans, rot
 
         except Exception as e:
             print("exception in transform_pose : ", str(e))
@@ -232,7 +221,7 @@ def main():
         flag1 = False 
         attempt = 0 
         attempt2 = 0
-        
+        arm_rotation = 0
         flag2 = False
         flag = False
 
@@ -245,39 +234,38 @@ def main():
         # right_inter_pose = [-1.5752570936587817, -2.0767219707225406, 1.3640831080452562, 0.7127025913258764, 1.5575267447673973, -1.451998526717846]
         # left_inter_pose = [1.5576133728027344, -2.8006861845599573, 1.6631155014038086, 1.2057710886001587, 1.5707075595855713, -1.5712140242206019]
 
-        left_inter_pose = [math.radians(90),math.radians(-158),math.radians(85),math.radians(72),math.radians(97),math.radians(-91)]
-        right_inter_pose = [math.radians(-90),math.radians(-158),math.radians(85),math.radians(72),math.radians(97),math.radians(-91)]
+        left_inter_pose = [math.radians(90),math.radians(-153),math.radians(90),math.radians(63),math.radians(80),math.radians(-90)]
+        right_inter_pose = [math.radians(-90),math.radians(-153),math.radians(90),math.radians(63),math.radians(80),math.radians(-90)]
 
         red_drop_1 = [math.radians(-30),math.radians(-124),math.radians(131),math.radians(0),math.radians(84),math.radians(-91)]
         yellow_drop_1 = [math.radians(18),math.radians(-124),math.radians(131),math.radians(0),math.radians(84),math.radians(-91)]
 
 
-        if ms.arm_rotation == 1:
+        if arm_rotation == 1:
 
-            pose = right_inter_pose
-            offset_interpose =  - 0.33
-            offset_pose = - 0.262
-            orientation_w = -0.5
-            orientation_z = 1
+            pose = left_inter_pose
+            offset_interpose = 0.26
+            offset_pose = 0.33
+            orientation_w = 0.5
+            orientation_z = 0.5
             # pose_x = 0.0004508026344099538
             # pose_y = -0.7052359925739942
             # pose_z = 0
             # pose_w = 0.008059155505845033
-
         else :
 
-            pose = left_inter_pose
-            offset_interpose = 0.33
-            offset_pose =  0.262
-            orientation_w = 0.5
-            orientation_z = 0.5
+            pose = right_inter_pose
+            offset_interpose = -0.33
+            offset_pose = - 0.262
+            orientation_w = -0.5
+            orientation_z = -0.5
             # pose_x = -0.006533642089305424z
             # pose_y = 0.7477652292772122
             # pose_z = -1
             # pose_w = 0.6639039569546898
 
         ms.print_pose_ee_joint()
-        ms.set_joint_angles(left_inter_pose)
+        ms.set_joint_angles(right_inter_pose)
         rospy.loginfo("At the left pose")
         ms.gripper_control(0)
         # rospy.sleep(2)
@@ -285,7 +273,7 @@ def main():
         while True:
 
             transform_yellow, rot_yellow=ms.transform_pose("Yellow_pepper")
-            transform_red , rot_red =ms.transform_pose("Red_pepper")
+            transform_red, rot_red=ms.transform_pose("Red_pepper")
             ms.print_pose_ee_joint()
 
             # red_pose_interpose = geometry_msgs.msg.Pose()
@@ -301,21 +289,20 @@ def main():
             #     rospy.loginfo("outside of the red pose")
 
             if len(transform_red)!=0:
-                
+
                 rospy.loginfo("Into the red pepper")
-                ms.pluck_pub.publish("Stop")
                 # ms.handle_turtle_pose(transform_red[0] , transform_red[1] , transform_red[2])
                 
                 attempt2 = 0
 
                 red_pose_interpose = geometry_msgs.msg.Pose()
-                red_pose_interpose.position.x = round(transform_red[0] ,2 ) 
+                red_pose_interpose.position.x = round(transform_red[0] ,2 ) - 0.1
                 red_pose_interpose.position.y = round(transform_red[1] ,2 ) - offset_interpose
                 red_pose_interpose.position.z = round(transform_red[2] ,2 ) 
-                red_pose_interpose.orientation.x = 0
-                red_pose_interpose.orientation.y = 0
-                red_pose_interpose.orientation.z = 0
-                red_pose_interpose.orientation.w = 1
+                red_pose_interpose.orientation.x = -0.5
+                red_pose_interpose.orientation.y = 0.5
+                red_pose_interpose.orientation.z = orientation_z
+                red_pose_interpose.orientation.w = orientation_w
 
                 red_pose = geometry_msgs.msg.Pose()
                 red_pose.position.x = round(transform_red[0] ,2 ) - 0.1
@@ -346,7 +333,7 @@ def main():
                 ms.gripper_control(1)
                 ms.set_joint_angles(red_drop_1) 
                 ms.gripper_control(0)
-                ms.set_joint_angles(pose)
+                # ms.set_joint_angles(pose)
                 ms.pluck_pub.publish("Move")
 
                 if flag2 :
@@ -356,7 +343,7 @@ def main():
             if len(transform_yellow)!=0:
 
                 rospy.loginfo("Into yellow pepper")
-                ms.pluck_pub.publish("Stop")
+
                 yellow_pose = geometry_msgs.msg.Pose()
                 yellow_pose.position.x = round(transform_yellow[0] ,2 ) - 0.1
                 yellow_pose.position.y = round(transform_yellow[1] ,2 ) - offset_interpose
@@ -382,7 +369,7 @@ def main():
 
                 #print(detect_pose)    
                 # rospy.loginfo("Trying to go to the pose")
-                attempt = 0
+
                 while not flag1 and attempt < 11 :
 
                     if attempt < 6:
@@ -401,7 +388,7 @@ def main():
                 ms.gripper_control(1)
                 ms.set_joint_angles(yellow_drop_1) 
                 ms.gripper_control(0)
-                ms.set_joint_angles(pose)
+                # ms.set_joint_angles(pose)
                 # ms.pluck_pub.publish("True")
                 ms.pluck_pub.publish("Move")
 
@@ -418,7 +405,6 @@ def main():
 if __name__=="__main__" :
     main()
     rospy.spin()
-
 
 
 

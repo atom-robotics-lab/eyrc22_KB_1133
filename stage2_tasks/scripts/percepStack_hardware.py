@@ -281,7 +281,7 @@ class PercepStack():
             
 
             # depth_val["red"].append(depth_array[x_center, y_center])  
-            if depth_array[x_center, y_center] <=2000 :
+            if depth_array[x_center, y_center] <=1500 :
                 depth_val["red"].append(depth_array[x_center, y_center])  
             else:
                 invalid.append(pose["red"][i])
@@ -297,7 +297,7 @@ class PercepStack():
             
             
             # depth_val["yellow"].append(depth_array[x_center, y_center]) 
-            if depth_array[x_center, y_center] <=100 :
+            if depth_array[x_center, y_center] <=1500 :
                 depth_val["yellow"].append(depth_array[x_center, y_center]) 
             else:
                 invalid.append(pose["yellow"][i])
