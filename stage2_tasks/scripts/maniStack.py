@@ -279,7 +279,7 @@ def main():
         ms.print_pose_ee_joint()
         ms.set_joint_angles(pose)
         rospy.loginfo("At the left pose")
-        # ms.gripper_control(0)
+        ms.gripper_control(0)
         # rospy.sleep(2)
 
         while True:
