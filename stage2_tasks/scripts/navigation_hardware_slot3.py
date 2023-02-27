@@ -87,7 +87,7 @@ class KB_Navigation:
         try :
             if msg == "Stop" and self.pepper_found_flag == False :
                 self.pepper_found_flag = True
-
+                self.stop_counter == 1 
                 # # start = time.time()
                 # # end = time.time()
 
@@ -161,54 +161,46 @@ class KB_Navigation:
 
         try :
 
-            '''if (self.regions['left'] < 0.9 and self.regions['right'] > 0.9) and (not self.turn_flag) :
-                self.change_state(6)
-
-            elif (self.regions['right'] < 0.9 and self.regions['left'] > 0.9) and (not self.turn_flag) :
-                self.change_state(7)'''
-
-
-            if ((self.regions['fright'] < 1.2 and self.regions['right'] < 1) or (self.regions['fleft'] < 1.2 and self.regions['left'] < 1)) and (not self.turn_flag) and (self.stop_counter == 0 ):
-                #print("Going Straight !!")
-                self.change_state(2)
-            
-            elif (self.regions['fright'] < 2.8 and self.regions['fleft'] < 1.2) and (not self.turn_flag) and (self.stop_counter == 0 ) :
-                self.change_state(2)
-
-
-            elif (self.regions['straight'] < 1.5 or self.turn_flag ) and (self.stop_counter == 0 ):
-                self.turn_flag = True
-                print("stop counter" , self.stop_counter)
-                if self.n_turns < 2 :
-                    self.change_state(1)
-
-                    if (self.regions['fleft'] < 1 and self.regions['straight'] >=7) or (self.regions['fright'] < 1 and self.regions['straight'] >= 7) :
-                        print("Left Turn Completed !")
-                        self.n_turns += 1
-                        self.turn_flag = False
-
-                        if self.n_turns == 2 :
-                            print("Arm Feedback !!")
-                            self.arm_feedback()
-                            
-                
-                else:
-                    self.change_state(3)
-
-                    if (self.regions['fleft'] < 1.3 and self.regions['straight'] >=7) or (self.regions['fright'] < 1.3 and self.regions['straight'] >=7) :
-                        print("Right Turn Completed !")
-                        self.n_turns += 1
-                        self.turn_flag = False
-
-            elif self.stop_counter == 1 :
-
-                print("in the mani state" , self.stop_counter )
-                self.move(0 , 0)
+            if self.stop_counter == 1 :
                 self.change_state(5)
 
-            else:
-                self.change_state(0)
-                print("Else")
+            else :
+
+                if ((self.regions['fright'] < 1.2 and self.regions['right'] < 1) or (self.regions['fleft'] < 1.2 and self.regions['left'] < 1)) and (not self.turn_flag):
+                    #print("Going Straight !!")
+                    self.change_state(2)
+                
+                elif (self.regions['fright'] < 2.8 and self.regions['fleft'] < 1.2) and (not self.turn_flag) :
+                    self.change_state(2)
+
+
+                elif (self.regions['straight'] < 1.5 or self.turn_flag ):
+                    self.turn_flag = True
+                    print("stop counter" , self.stop_counter)
+                    if self.n_turns < 2 :
+                        self.change_state(1)
+
+                        if (self.regions['fleft'] < 1 and self.regions['straight'] >=7) or (self.regions['fright'] < 1 and self.regions['straight'] >= 7) :
+                            print("Left Turn Completed !")
+                            self.n_turns += 1
+                            self.turn_flag = False
+
+                            if self.n_turns == 2 :
+                                print("Arm Feedback !!")
+                                self.arm_feedback()
+                                
+                    
+                    else:
+                        self.change_state(3)
+
+                        if (self.regions['fleft'] < 1.3 and self.regions['straight'] >=7) or (self.regions['fright'] < 1.3 and self.regions['straight'] >=7) :
+                            print("Right Turn Completed !")
+                            self.n_turns += 1
+                            self.turn_flag = False
+
+                else:
+                    self.change_state(0)
+                    print("Else")
 
         except :
             print("Waiting for Laser Scan data !")
