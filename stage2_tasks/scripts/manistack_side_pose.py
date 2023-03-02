@@ -25,7 +25,9 @@ class Ur5Moveit:
         self.arm_sub   = rospy.Subscriber("/arm_rotation" , String , self.arm_sub_callback)
         self.arm_rotation = 0
         self.pluck_pub = rospy.Publisher("/joint_function" , String , queue_size=10)
-
+        self.detect_sub = rospy.Subscriber('/found', String , self.detect_sub_clbk)
+        self.rotate_side_arm = 0
+        self.rotated_side_arm = rospy.Publisher("/rotated_side_arm" , String , queue_size=10)
         self.ack_val = 0                # keeping it as default state in zero, as it acknowledges the topic connection
         self.ack_val_poseJoint = 0      # for pose joint val ack
         self._eef_link = "wrist_3_link" # declaring end effector link for the clas manually
@@ -50,6 +52,18 @@ class Ur5Moveit:
         self.req_pose_joint = rospy.Publisher("/joint_ee_pose_req", 
                                         Empty, queue_size=1)
         rospy.sleep(1)
+
+    def detect_sub_clbk(self, msg):
+        msg = msg.data
+        try:
+            if msg == "Stop" :
+                self.rotate_side_arm = 1
+                print("rotate_side_arm " , self.rotate_side_arm)
+            else :
+                self.rotate_side_arm = 0
+
+        except:
+            print("NO side pose is publishing")
 
     def arm_sub_callback(self, msg):
         msg = msg.data 
@@ -248,6 +262,9 @@ def main():
         # right_inter_pose = [-1.5752570936587817, -2.0767219707225406, 1.3640831080452562, 0.7127025913258764, 1.5575267447673973, -1.451998526717846]
         # left_inter_pose = [1.5576133728027344, -2.8006861845599573, 1.6631155014038086, 1.2057710886001587, 1.5707075595855713, -1.5712140242206019]
 
+        left_side_pose = [math.radians(90),math.radians(-158),math.radians(85),math.radians(72),math.radians(122),math.radians(-91)]
+        right_side_pose = [math.radians(-90),math.radians(-158),math.radians(85),math.radians(72),math.radians(69),math.radians(-91)]
+
         left_inter_pose = [math.radians(90),math.radians(-158),math.radians(85),math.radians(72),math.radians(97),math.radians(-91)]
         right_inter_pose = [math.radians(-90),math.radians(-158),math.radians(85),math.radians(72),math.radians(97),math.radians(-91)]
 
@@ -255,9 +272,10 @@ def main():
         yellow_drop_1 = [math.radians(-1),math.radians(-123),math.radians(153),math.radians(-22),math.radians(65),math.radians(-94)]
 
 
-        if arm_rotation == 1:
+        if arm_rotation == 0:
             print("in the left inter pose")
             pose = left_inter_pose
+            side_pose = left_side_pose
             offset_interpose = 0.26
             offset_pose = 0.33
             orientation_w = 0.5
@@ -269,6 +287,7 @@ def main():
         else :
             print("in the right inter_pose")
             pose = right_inter_pose
+            side_pose = right_side_pose
             offset_interpose = -0.33
             offset_pose = - 0.262
             orientation_w = -0.5
@@ -279,12 +298,22 @@ def main():
             # pose_w = 0.6639039569546898
 
         ms.print_pose_ee_joint()
-        ms.set_joint_angles(pose)
+        ms.set_joint_angles(side_pose)
+
+
+        
         # rospy.loginfo("At the left pose")
         ms.gripper_control(0)
         # rospy.sleep(2)
 
         while True:
+
+            if ms.rotate_side_arm == 1 :
+                ms.set_joint_angles(pose)
+                ms.rotated_side_arm.publish("Side_pose_done")
+                # ms.rotate_side_arm = 0
+            elif ms.rotate_side_arm == 0 :
+                ms.set_joint_angles(side_pose)
 
             transform_yellow, rot_yellow=ms.transform_pose("Yellow_pepper")
             transform_red, rot_red=ms.transform_pose("Red_pepper")
@@ -349,9 +378,9 @@ def main():
                 ms.gripper_control(1)
                 ms.set_joint_angles(red_drop_1) 
                 ms.gripper_control(0)
-                # ms.set_joint_angles(pose)
+                ms.set_joint_angles(pose)
                 ms.pluck_pub.publish("Move")
-
+                ms.rotate_side_arm = 0
                 if flag2 :
                     print("fruit_red Dropped in red_box")
 
@@ -360,6 +389,8 @@ def main():
 
                 rospy.loginfo("Into yellow pepper")
                 ms.pluck_pub.publish("Stop")
+
+                attempt = 0
 
                 yellow_pose = geometry_msgs.msg.Pose()
                 yellow_pose.position.x = round(transform_yellow[0] ,2 ) - 0.1
@@ -408,7 +439,7 @@ def main():
                 ms.set_joint_angles(pose)
                 # ms.pluck_pub.publish("True")
                 ms.pluck_pub.publish("Move")
-
+                ms.rotate_side_arm = 0
                 if flag1 :
                     print("fruit_yellow Dropped in yellow_box")
 
