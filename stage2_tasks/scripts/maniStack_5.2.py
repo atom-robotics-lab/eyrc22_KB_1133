@@ -235,7 +235,6 @@ def main():
         flag1 = False 
         attempt = 0 
         attempt2 = 0
-        arm_rotation = 0
         flag2 = False
         flag = False
 
@@ -255,36 +254,37 @@ def main():
         yellow_drop_1 = [math.radians(-1),math.radians(-123),math.radians(153),math.radians(-22),math.radians(65),math.radians(-94)]
 
 
-        if arm_rotation == 1:
-            print("in the left inter pose")
-            pose = left_inter_pose
-            offset_interpose = 0.26
-            offset_pose = 0.33
-            orientation_w = 0.5
-            orientation_z = 0.5
-            # pose_x = 0.0004508026344099538
-            # pose_y = -0.7052359925739942
-            # pose_z = 0
-            # pose_w = 0.008059155505845033
-        else :
-            print("in the right inter_pose")
-            pose = right_inter_pose
-            offset_interpose = -0.33
-            offset_pose = - 0.262
-            orientation_w = -0.5
-            orientation_z = -0.5
-            # pose_x = -0.006533642089305424z
-            # pose_y = 0.7477652292772122
-            # pose_z = -1
-            # pose_w = 0.6639039569546898
-
-        ms.print_pose_ee_joint()
-        ms.set_joint_angles(pose)
-        # rospy.loginfo("At the left pose")
-        ms.gripper_control(0)
         # rospy.sleep(2)
 
         while True:
+
+            if ms.arm_rotation == 1:
+                print("in the left inter pose")
+                pose = left_inter_pose
+                offset_interpose = 0.26
+                offset_pose = 0.33
+                orientation_w = 0.5
+                orientation_z = 0.5
+                # pose_x = 0.0004508026344099538
+                # pose_y = -0.7052359925739942
+                # pose_z = 0
+                # pose_w = 0.008059155505845033
+            else :
+                print("in the right inter_pose")
+                pose = right_inter_pose
+                offset_interpose = -0.33
+                offset_pose = - 0.262
+                orientation_w = -0.5
+                orientation_z = -0.5
+                # pose_x = -0.006533642089305424z
+                # pose_y = 0.7477652292772122
+                # pose_z = -1
+                # pose_w = 0.6639039569546898
+
+            ms.print_pose_ee_joint()
+            ms.set_joint_angles(pose)
+            # rospy.loginfo("At the left pose")
+            ms.gripper_control(0)
 
             transform_yellow, rot_yellow=ms.transform_pose("Yellow_pepper")
             transform_red, rot_red=ms.transform_pose("Red_pepper")

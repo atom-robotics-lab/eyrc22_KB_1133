@@ -55,6 +55,7 @@ class Ur5Moveit:
 
     def detect_sub_clbk(self, msg):
         msg = msg.data
+        print("detect sub clbk " , msg)
         try:
             if msg == "Stop" :
                 self.rotate_side_arm = 1
@@ -67,6 +68,7 @@ class Ur5Moveit:
 
     def arm_sub_callback(self, msg):
         msg = msg.data 
+        print("roatation " ,self.arm_rotation)
         try :
             if msg == "Rotate" :
                 self.arm_rotation = 1
@@ -249,7 +251,6 @@ def main():
         flag1 = False 
         attempt = 0 
         attempt2 = 0
-        arm_rotation = 0
         flag2 = False
         flag = False
 
@@ -272,41 +273,45 @@ def main():
         yellow_drop_1 = [math.radians(-1),math.radians(-123),math.radians(153),math.radians(-22),math.radians(65),math.radians(-94)]
 
 
-        if arm_rotation == 0:
-            print("in the left inter pose")
-            pose = left_inter_pose
-            side_pose = left_side_pose
-            offset_interpose = 0.26
-            offset_pose = 0.33
-            orientation_w = 0.5
-            orientation_z = 0.5
-            # pose_x = 0.0004508026344099538
-            # pose_y = -0.7052359925739942
-            # pose_z = 0
-            # pose_w = 0.008059155505845033
-        else :
-            print("in the right inter_pose")
-            pose = right_inter_pose
-            side_pose = right_side_pose
-            offset_interpose = -0.33
-            offset_pose = - 0.262
-            orientation_w = -0.5
-            orientation_z = -0.5
-            # pose_x = -0.006533642089305424z
-            # pose_y = 0.7477652292772122
-            # pose_z = -1
-            # pose_w = 0.6639039569546898
 
-        ms.print_pose_ee_joint()
-        ms.set_joint_angles(side_pose)
 
 
         
         # rospy.loginfo("At the left pose")
-        ms.gripper_control(0)
+        # ms.gripper_control(0)
         # rospy.sleep(2)
 
         while True:
+            
+            if ms.arm_rotation == 0:
+                print("in the left inter pose")
+                pose = left_inter_pose
+                side_pose = left_side_pose
+                offset_interpose = 0.26
+                offset_pose = 0.33
+                orientation_w = 0.5
+                orientation_z = 0.5
+                # pose_x = 0.0004508026344099538
+                # pose_y = -0.7052359925739942
+                # pose_z = 0
+                # pose_w = 0.008059155505845033
+            else :
+                print("in the right inter_pose")
+                pose = right_inter_pose
+                side_pose = right_side_pose
+                offset_interpose = -0.33
+                offset_pose = - 0.262
+                orientation_w = -0.5
+                orientation_z = -0.5
+                # pose_x = -0.006533642089305424z
+                # pose_y = 0.7477652292772122
+                # pose_z = -1
+                # pose_w = 0.6639039569546898
+
+            ms.print_pose_ee_joint()
+            ms.gripper_control(0)
+            # ms.set_joint_angles(side_pose)
+
 
             if ms.rotate_side_arm == 1 :
                 ms.set_joint_angles(pose)
@@ -318,7 +323,7 @@ def main():
             transform_yellow, rot_yellow=ms.transform_pose("Yellow_pepper")
             transform_red, rot_red=ms.transform_pose("Red_pepper")
             ms.print_pose_ee_joint()
-
+            # ms.set_joint_angles(pose)
             # red_pose_interpose = geometry_msgs.msg.Pose()
             # # red_pose_interpose.orientation.x =  0
             # red_pose_interpose.orientation.y = 1
@@ -378,7 +383,7 @@ def main():
                 ms.gripper_control(1)
                 ms.set_joint_angles(red_drop_1) 
                 ms.gripper_control(0)
-                ms.set_joint_angles(pose)
+                ms.set_joint_angles(side_pose)
                 ms.pluck_pub.publish("Move")
                 ms.rotate_side_arm = 0
                 if flag2 :
@@ -436,7 +441,7 @@ def main():
                 ms.gripper_control(1)
                 ms.set_joint_angles(yellow_drop_1) 
                 ms.gripper_control(0)
-                ms.set_joint_angles(pose)
+                ms.set_joint_angles(side_pose)
                 # ms.pluck_pub.publish("True")
                 ms.pluck_pub.publish("Move")
                 ms.rotate_side_arm = 0
