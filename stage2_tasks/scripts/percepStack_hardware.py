@@ -73,11 +73,11 @@ class PercepStack():
 
     def handle_turtle_pose(self, x , y, z , pepper ) :
         br = tf.TransformBroadcaster()
-        time_1 = rospy.Time.now() + 0.5
+        #time_1 = rospy.Time.now() + 0.5
 
         br.sendTransform((x , y , z),
                         (0,0,0,1),
-                        time_1,
+                        rospy.Time.now(),
                         pepper,
                         "camera_link")
         print(x ,y ,z )                
