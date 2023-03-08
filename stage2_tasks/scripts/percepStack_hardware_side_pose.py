@@ -28,14 +28,20 @@ class PercepStack():
         self.red_mask_lower = (150, 109, 51)
         self.red_mask_upper = (179, 255, 255)
         
+        # Values to be used only in Evening
+        # self.yellow_mask_lower = (2, 91, 105)
+        # self.yellow_mask_upper = (27, 255, 255)  
+        
         self.yellow_mask_lower = (2, 125, 132)
         self.yellow_mask_upper = (27, 255, 255)  
 
         self.bridge = CvBridge()
 
-        sub_rgb = message_filters.Subscriber("/camera/color/image_raw", Image)
+        # sub_rgb = message_filters.Subscriber("/camera/color/image_raw", Image)
+        sub_rgb = message_filters.Subscriber("/camera/color/image_raw/compressed_throttle", CompressedImage)
         sub_depth = message_filters.Subscriber("/camera/aligned_depth_to_color/image_raw", Image)
         ts = message_filters.ApproximateTimeSynchronizer([sub_depth, sub_rgb], queue_size=10, slop=0.5)
+
         ts.registerCallback(self.callback)
 
         self.pub_tf = rospy.Publisher("/tf", tf2_msgs.msg.TFMessage, queue_size=1)

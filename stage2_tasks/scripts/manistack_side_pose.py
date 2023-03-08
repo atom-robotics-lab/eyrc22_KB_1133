@@ -283,7 +283,7 @@ def main():
 
         while True:
             
-            if ms.arm_rotation == 0:
+            if ms.arm_rotation == 1:
                 print("in the left inter pose")
                 pose = left_inter_pose
                 side_pose = left_side_pose
