@@ -97,6 +97,9 @@ class Ur5Moveit:
         Input : Joint angles in Float32MultiArray format
         Output: Flag of execution (0 -> failed, 1 -> success)
         '''
+
+        rospy.loginfo("in the set joint function")
+
         data_for_float32 = Float32MultiArray()        # Float32Array data type has two sub-data types
         data_for_float32.data = arg_list_joint_angles # storing in data part
 
@@ -275,9 +278,11 @@ def main():
             # pose_y = 0.7477652292772122
             # pose_z = -1
             # pose_w = 0.6639039569546898
-
+        rospy.loginfo("in the print state")
         ms.print_pose_ee_joint()
+        rospy.loginfo("set joint function")
         ms.set_joint_angles(pose)
+        rospy.loginfo("in the gripper pose")
         # rospy.loginfo("At the left pose")
         ms.gripper_control(0)
 
@@ -422,6 +427,5 @@ def main():
 if __name__=="__main__" :
     main()
     rospy.spin()
-
 
 

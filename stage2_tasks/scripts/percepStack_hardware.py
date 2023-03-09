@@ -37,8 +37,8 @@ class PercepStack():
 
         self.bridge = CvBridge()
 
-        # sub_rgb = message_filters.Subscriber("/camera/color/image_raw", Image)
-        sub_rgb = message_filters.Subscriber("/camera/color/image_raw/compressed_throttle", CompressedImage)
+        sub_rgb = message_filters.Subscriber("/camera/color/image_raw", Image)
+        # sub_rgb = message_filters.Subscriber("/camera/color/image_raw/compressed_throttle", CompressedImage)
         sub_depth = message_filters.Subscriber("/camera/aligned_depth_to_color/image_raw", Image)
         ts = message_filters.ApproximateTimeSynchronizer([sub_depth, sub_rgb], queue_size=10, slop=0.5)
         ts.registerCallback(self.callback)
@@ -61,6 +61,7 @@ class PercepStack():
             # self.rgb_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
             self.rgb_image = self.bridge.imgmsg_to_cv2(rgb_message, desired_encoding = "bgr8")
+            
             self.rgb_shape = self.rgb_image.shape
 
         except Exception as e:

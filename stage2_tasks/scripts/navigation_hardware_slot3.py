@@ -51,7 +51,7 @@ class KB_Navigation:
         self.pepper_found_flag = False
        
 
-        self.linear_p = 0.1         # Constant linear velocity between lanes
+        self.linear_p = 0.05         # Constant linear velocity between lanes
         self.angular_p = 0.25       # Angular velocity between lanes to keep in centre
 
         self.rotate_angular_p = 1   # Angular velocity while turning
