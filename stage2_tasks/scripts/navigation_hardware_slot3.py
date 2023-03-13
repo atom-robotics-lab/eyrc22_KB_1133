@@ -225,23 +225,27 @@ class KB_Navigation:
         '''  
 
         try :
-
+            
+            # Stop the bot if stop_counter == 1
             if self.stop_counter == 1 :
                 self.change_state(5)
 
             else :
-
+                
+                # Travel between the troughs, while keeping the bot at the center
                 if ((self.regions['fright'] < 1.2 and self.regions['right'] < 1) or (self.regions['fleft'] < 1.2 and self.regions['left'] < 1)) and (not self.turn_flag):
-                    #print("Going Straight !!")
                     self.change_state(2)
                 
+                # Travel between the troughs
                 elif (self.regions['fright'] < 2.8 and self.regions['fleft'] < 1.2) and (not self.turn_flag) :
                     self.change_state(2)
 
-
+                # Turn the bpt
                 elif (self.regions['straight'] < 1.5 or self.turn_flag ):
                     self.turn_flag = True
                     print("stop counter" , self.stop_counter)
+
+                    # If the no. of turns till now if less than 2, turn left
                     if self.n_turns < 2 :
                         self.change_state(1)
 
@@ -250,11 +254,12 @@ class KB_Navigation:
                             self.n_turns += 1
                             self.turn_flag = False
 
+                            # Rotate the direction of the arm
                             if self.n_turns == 2 :
                                 print("Arm Feedback !!")
                                 self.arm_feedback()
                                 
-                    
+                    # Take the right turn
                     else:
                         self.change_state(3)
 
@@ -263,6 +268,7 @@ class KB_Navigation:
                             self.n_turns += 1
                             self.turn_flag = False
 
+                # Find the wall
                 else:
                     self.change_state(0)
                     print("Else")
