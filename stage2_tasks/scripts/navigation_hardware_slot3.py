@@ -1,5 +1,16 @@
 #! /usr/bin/env python3
 
+
+''' 
+* Team Id : KB#1133
+* Author List : Arjun K Haridas, Ayan Goel>
+* Filename: navigation_hardware_slot3.py
+* Theme: Krishi Bot
+* Functions: __init__, joint_move_clbk, arm_feedback, pepper_found_clbk, clbk_laser, change_state, move, take_action, find_wall, turn_right, turn_left, stop, 
+             follow_the_wall, follow_left_wall, follow_right_wall, _state_
+* Global Variables: none
+'''
+
 import rospy
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
@@ -8,9 +19,8 @@ import time
 
 
 class KB_Navigation:
-
     def __init__(self):
-
+        
         self.pub_ = None
         self.arm_pub = None
         
@@ -65,39 +75,56 @@ class KB_Navigation:
         self.stop_counter = 0
 
     def joint_move_clbk(self , msg):
-        msg1 = msg.data 
+        '''
+        * Function Name: joint_move_clbk
+        * Input: msg(Can contain certain discrete values like "Stop" and "Move")
+        * Output: none
+        * Logic: This is a callback function for the Topic : /joint_function.
+                It is used to keep the bot stopped when the arm is trying to pick the fruit and then 
+                later start the movement when the arm is done placing the peppper in the basket
+        * Example Call: Callback Function
+        '''
+        msg_data = msg.data 
         try : 
-            joint_move = msg1
-            print(joint_move)
-            if joint_move == "Stop" :
+            print("MSG DATA : ", msg_data)
+            if msg_data == "Stop" :
                 self.stop_counter = 1 
-            elif joint_move == "Move" :
+            elif msg_data == "Move" :
                 self.stop_counter = 0 
             else : 
                 self.stop_counter = 0
         except: 
             print("Not even a single value is published")
 
-    def arm_feedback(self) :        
+    def arm_feedback(self) :
+        '''
+        * Function Name: arm_feedback
+        * Input: none
+        * Output: none
+        * Logic: This function is used to publish the message "Rotate" to the
+                 /arm_rotation topic. It is used to rotate the direction of the arm(left-facing
+                 or right-facing) after the turn-2(when the bot enters the center lane again)
+
+        * Example Call: arm_feedback()
+        '''        
         self.arm_pub.publish("Rotate")
 
     def pepper_found_clbk(self, msg) :
+        '''
+        * Function Name: pepper_found_clbk
+        * Input: msg("Can contain discrete values like "Stop" and "Move")
+        * Output: none
+        * Logic: This is a callback function for the topic /found. It will stop the bot 
+                 when a pepper is detected by the perception script
+
+        * Example Call: Callback Function
+        '''  
         msg = msg.data
 
         try :
             if msg == "Stop" and self.pepper_found_flag == False :
                 self.pepper_found_flag = True
                 self.stop_counter == 1 
-                # # start = time.time()
-                # # end = time.time()
-
-                # while(True) :
-                #     # print("Waiting for {} seconds".format(int(end-start)))
-                #     self.move(0, 0)
-                #     print("Stop")
-                #     # end = time.time()
-
-                # print("Start Moving")
 
             if msg == "Stop" and self.pepper_found_flag == True :
                 print("Bot is already stopped")
@@ -111,22 +138,21 @@ class KB_Navigation:
 
 
     def clbk_laser(self, msg):
+        '''
+        * Function Name: clbk_laser
+        * Input: msg(Contains LaserScan data)
+        * Output: none
+        * Logic: This function is used to receive data from the LiDAR and divide it into 
+                 various segments like front, left, right etc.
+
+        * Example Call: Callback Function
+        '''  
         
         laser_data = list(msg.ranges)
         
         for i in range(len(msg.ranges)):
             if(laser_data[i] <= 0.1):
                 laser_data[i] = 100.0
-
-        # Regions for Simulation
-        '''self.regions = {
-            'right':  min(min(msg.ranges[0:120]), 8), 
-            'fright': min(min(msg.ranges[145:288]), 10), 
-            'front':  min(min(msg.ranges[280:440]), 8), 
-            'fleft':  min(min(msg.ranges[433:576]), 10), 
-            'left':   min(min(msg.ranges[600:719]), 8),
-            'straight' : min(min(msg.ranges[350:370]), 8)
-        }'''
 
         # Regions for Hardware
         self.regions = {
@@ -137,27 +163,49 @@ class KB_Navigation:
         'left':   min(min(laser_data[434:531]), 8.0),
         'straight' : min(min(laser_data[261:269]), 8.0)
         }
-
-
-
         
-        # print("\nLEFT : ", self.regions['left'], "FLEFT : ", self.regions['fleft'], "STRAIGHT : ", self.regions['straight'], "FRIGHT : ", self.regions['fright'], "RIGHT : ", self.regions['right'], "\n")
-
         self.take_action()
         
 
     def change_state(self, state):
+        '''
+        * Function Name: change_state
+        * Input: state(Numerical values between 0 and 7)
+        * Output: none
+        * Logic: This function is used to change the state of the navigation script. 
+                 Different integers is mapped to different states of the bot
+
+        * Example Call: change_state(0)
+        '''  
         if state is not self.state_:
             print ('Wall follower - [%s] - %s' % (state, self.state_dict_[state]))
             self.state_ = state
 
     def move(self,linear,angular):
+        '''
+        * Function Name: move
+        * Input: linear(linear velocity), angular(angular velocity)
+        * Output: none
+        * Logic: This function takes the linear and angular velocities as input
+                 and sends velocity message to the /cmd_vel topic
+
+        * Example Call: move(0, 0)
+        '''  
         velocity_msg = Twist()
         velocity_msg.linear.x = linear
         velocity_msg.angular.z = angular 
         self.pub_.publish(velocity_msg)
 
     def take_action(self):
+        '''
+        * Function Name: take_action
+        * Input: none
+        * Output: none
+        * Logic: This function is the main controlling unit of the navigation script.
+                 It uses the LiDAR values to decide which step to take(follow the wall
+                 , stop the bot etc.) 
+        * Example Call: take_action() 
+        '''  
 
         try :
 
@@ -210,29 +258,65 @@ class KB_Navigation:
        
 
     def find_wall(self):
+        '''
+        * Function Name: find_wall
+        * Input: none
+        * Output: none
+        * Logic: This function will make the bot travel in a straight line ahead
+                 with a constant velocity until a wall is detected
+
+        * Example Call: find_wall()
+        '''  
         self.move(self.linear_p , 0 )
-        #print("Find Wall")
 
     def turn_right(self) :
+        '''
+        * Function Name: turn_right
+        * Input: none
+        * Output: none
+        * Logic: This function is used to make the bot take a right turn
+        * Example Call: turn_right()
+        '''  
         
         angular_error = self.regions['right'] - self.rotate_wall_dist
         self.move(0.1, -self.rotate_angular_p*angular_error) 
         print("Turn Right")
 
     def turn_left(self):
+        '''
+        * Function Name: turn_left
+        * Input: none
+        * Output: none
+        * Logic: This function is used to make the bot take a left turn
+        * Example Call: turn_left()
+        '''  
 
         angular_error = self.regions['left'] - self.rotate_wall_dist
         self.move(0.1, self.rotate_angular_p*angular_error) 
         print("Turn Left")
-        #print("left angular error : ", self.rotate_angular_p*angular_error )
 
     
 
     def stop(self):
+        '''
+        * Function Name: stop
+        * Input: none
+        * Output: none
+        * Logic: This function is used to make the bot stop when a pepper is detected
+        * Example Call: stop()
+        '''  
         self.move(0 ,0 )
         print("Bot Stopped !")
 
     def follow_the_wall(self):
+        '''
+        * Function Name: follow_the_wall
+        * Input: none
+        * Output: none
+        * Logic: This function is used to make the bot navigate between the troughs
+                 while staying at the center of the lane
+        * Example Call: follow_the_wall()
+        '''  
 
         position_error = self.regions['left'] - self.regions['right']
         angular_velocity = self.angular_p*position_error
@@ -244,31 +328,19 @@ class KB_Navigation:
         else:
             print("Going Straight !")
 
-        self.move(self.linear_p, angular_velocity) 
-        
+        self.move(self.linear_p, angular_velocity)    
 
     
-
-    def follow_left_wall(self) :
-        print("Following Left Wall ")
-        
-        position_error = self.regions['left'] - 0.7
-        angular_velocity = self.angular_p*position_error
-        #print("angular_velocity : ", angular_velocity)
-
-        self.move(self.linear_p, angular_velocity) 
-
-    def follow_right_wall(self) :
-        print("Following Right Wall ")
-        
-        position_error = self.regions['right'] - 0.8
-        angular_velocity = -self.angular_p*position_error
-
-        self.move(self.linear_p, angular_velocity) 
-
-
-
     def _state_(self):
+        '''
+        * Function Name: _state_
+        * Input: none
+        * Output: none
+        * Logic: This function is used to change the state of the bot.
+                It is called by the change_state() function
+
+        * Example Call: Callback Function
+        '''  
 
         rate = rospy.Rate(10)
         while not rospy.is_shutdown():
@@ -285,10 +357,6 @@ class KB_Navigation:
                 print("Sim function")
             elif self.state_ == 5 :
                 self.stop()
-            elif self.state_ == 6 :
-                self.follow_left_wall()
-            elif self.state_ == 7 :
-                self.follow_right_wall()
             else:
                 rospy.logerr('Unknown state!')
                         
@@ -298,8 +366,4 @@ class KB_Navigation:
 
 if __name__ == '__main__':
     obs_state = KB_Navigation()
-
-    #obs_state.start_move()
-    #rospy.sleep(2)
-
     obs_state._state_()
