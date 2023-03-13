@@ -3,7 +3,7 @@
 
 ''' 
 * Team Id : KB#1133
-* Author List : Arjun K Haridas, Ayan Goel>
+* Author List : Arjun K Haridas, Ayan Goel, Bhavay Garg>
 * Filename: navigation_hardware_slot3.py
 * Theme: Krishi Bot
 * Functions: __init__, joint_move_clbk, arm_feedback, pepper_found_clbk, clbk_laser, change_state, move, take_action, find_wall, turn_right, turn_left, stop, 
@@ -24,6 +24,7 @@ class KB_Navigation:
         self.pub_ = None
         self.arm_pub = None
         
+        # Convert LiDAR values to various regions
         self.regions = {
             'right': 0,
             'fright': 0,
@@ -33,10 +34,10 @@ class KB_Navigation:
             'straight' : 0,
         }
         
+        # Define the current state of the bot
         self.state_ = 0
-        self.flag = False
-        self.direction = -1 
-        
+
+        # Define the various states of the bot
         self.state_dict_ = {
             0: 'find the wall',
             1: 'turn left',
@@ -48,30 +49,46 @@ class KB_Navigation:
             7 : 'follow right wall'
         }
 
+        # Create empty Twist message
         self.message = Twist()
         
+        # Create a rospy node
         rospy.init_node('Object_Avoider')
         
+        # Publisher to topic /cmd_vel
         self.pub_ = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
+
+        # Publisher to topic /arm_rotation
         self.arm_pub = rospy.Publisher('/arm_rotation', String, queue_size = 1)    
+        
+        # Subscriber to topic /ebot/laser/scan
         self.sub = rospy.Subscriber('ebot/laser/scan', LaserScan, self.clbk_laser)
+
+        # Subscriber to topic /found
         self.pepper_found = rospy.Subscriber("/found", String, self.pepper_found_clbk)
+
+        # Subscriber to topic /joint_function
         self.pluck_sub = rospy.Subscriber("/joint_function" , String , self.joint_move_clbk)
 
+        # Flag variable to indicate if pepper is found
         self.pepper_found_flag = False
        
+        # Constant linear velocity between lanes
+        self.linear_p = 0.05  
 
-        self.linear_p = 0.05         # Constant linear velocity between lanes
-        self.angular_p = 0.25       # Angular velocity between lanes to keep in centre
+        # Angular velocity between lanes to keep in centre       
+        self.angular_p = 0.25       
 
-        self.rotate_angular_p = 1   # Angular velocity while turning
+        # Angular velocity while turning
+        self.rotate_angular_p = 1   
 
-        self.turn_flag = False      # Turn Flag
-        self.turn_direction = 1     # Turn direction
+        # No. of turns taken by the bot
+        self.n_turns = 0    
 
-        self.n_turns = 0            # No. of turns
+        # Distance from wall while turning   
+        self.rotate_wall_dist = 0.8 
 
-        self.rotate_wall_dist = 0.8 # Distance from wall while turning
+        # Used to stop the bot when pepper is detected
         self.stop_counter = 0
 
     def joint_move_clbk(self , msg):
@@ -154,7 +171,7 @@ class KB_Navigation:
             if(laser_data[i] <= 0.1):
                 laser_data[i] = 100.0
 
-        # Regions for Hardware
+        # LiDAR Regions for Hardware
         self.regions = {
         'right':  min(min(laser_data[0:106]), 8.0),
         'fright': min(laser_data[44], 10),
