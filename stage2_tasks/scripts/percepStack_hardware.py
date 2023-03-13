@@ -84,6 +84,7 @@ class PercepStack():
             print("rgb_callback exception : ", e)
             pass
     
+    
     # Function Name: depth_callback 
     # Input: depth_message 
     # Output: None
@@ -104,6 +105,12 @@ class PercepStack():
                         "camera_link")
         print(x ,y ,z )                
         print("Transform broadcast")
+
+
+    # Function Name: find_transforms 
+    # Input: poses and their depths
+    # Output: tf of fruits 
+    # Description: Maps the given poses and depths to real world cordinates
 
     def find_transforms(self,pose, depth_val) : # Finds XYZ coordinates
         transforms = {"red":[],"yellow":[]}
@@ -139,6 +146,12 @@ class PercepStack():
         rospy.loginfo(transforms)
         return transforms
 
+
+    # Function Name: detect 
+    # Input: None
+    # Output: None 
+    # Description: Evaluates the incoming images and checks if a fruit is detected
+
     def detect(self):
         pose=self.rgb_image_processing()
         self.pose=pose
@@ -165,6 +178,12 @@ class PercepStack():
             self.found_pub.publish("Move")
             rospy.loginfo("Move")
             self.found=False
+
+
+    # Function Name: callback 
+    # Input: depth_data,rgb_data
+    # Output: None 
+    # Description: Takes in the incoming rgb and depth data and calls respective functions
 
     def callback(self,depth_data, rgb_data) :
 
@@ -242,6 +261,11 @@ class PercepStack():
     #         self.pub_tf3.publish(tfm3)
 
 
+    # Function Name: mask 
+    # Input: frame,lower,upper
+    # Output: [obj_center,obj_radius] 
+    # Description: processes the image using the given hsv values and gives the centers and radii of detected fruits
+
     def mask(self, frame, lower, upper):
     
         obj_radius = []    
@@ -272,6 +296,10 @@ class PercepStack():
                 cv2.waitKey(1)
         return [obj_center,obj_radius]
 
+    # Function Name: rgb_image_processing 
+    # Input: None
+    # Output: Pose 
+    # Description: Processes the rgb image to find the yellow and red fruits
 
     def rgb_image_processing(self):
 
@@ -295,6 +323,11 @@ class PercepStack():
             print("rgb_image_processing exception : ", e)
             pose={"red":[],"yellow":[]}
             return pose
+
+    # Function Name: depth_image_processing 
+    # Input: pose
+    # Output: depth array 
+    # Description: Processes the depth image using the given pose and finds the depth of the fruits
 
     def depth_image_processing(self, pose) :
 
@@ -356,6 +389,11 @@ class PercepStack():
 
 
 
+# Function Name: main 
+# Input: None
+# Output: None 
+# Description: Inits the node and continously calls the detect function
+
 def main():
     rospy.init_node("pepperfinder", anonymous=True)
     # try:
@@ -365,8 +403,6 @@ def main():
     inter_pose_1=  [math.radians(-88),math.radians(-3),math.radians(-37),math.radians(37),math.radians(0),math.radians(-1)]
 
     while True:
-        
-        # ps.set_joint_angles(inter_pose)
         ps.detect()
         
     # except Exception as e:
