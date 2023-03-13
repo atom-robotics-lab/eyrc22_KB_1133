@@ -66,10 +66,12 @@ class PercepStack():
         self.rgb_shape, self.depth_shape = None, None
         self.found=False
     
+    
     # Function Name: rgb_callback 
     # Input: rgb_message
     # Output: None 
     # Description: Decodes the incoming rgb_message and saves it in rgb_image variable
+    # Example Call: ps.rgb_callback(rgb_message)
 
     def rgb_callback(self, rgb_message) :
         try :
@@ -89,10 +91,18 @@ class PercepStack():
     # Input: depth_message 
     # Output: None
     # Description: Decodes the depth image and saves it to variable depth_image 
+    # Example Call: ps.depth_callback(depth_message)
     
     def depth_callback(self, depth_message) :
         self.depth_image = snelf.bridge.imgmsg_to_cv2(depth_message, desired_encoding=depth_message.encoding)
         self.depth_shape = self.depth_image.shape 
+
+
+    # Function Name: handle_turtle_pose 
+    # Input: x,y,z,pepper 
+    # Output: None
+    # Description: Broadcasts the tf
+    # Example Call: ps.handle_turtle_pose(x,y,z,pepper)
 
     def handle_turtle_pose(self, x , y, z , pepper ) :
         br = tf.TransformBroadcaster()
@@ -111,6 +121,7 @@ class PercepStack():
     # Input: poses and their depths
     # Output: tf of fruits 
     # Description: Maps the given poses and depths to real world cordinates
+    # Example Call: ps.find_transforms(pose,depth)
 
     def find_transforms(self,pose, depth_val) : # Finds XYZ coordinates
         transforms = {"red":[],"yellow":[]}
@@ -151,6 +162,7 @@ class PercepStack():
     # Input: None
     # Output: None 
     # Description: Evaluates the incoming images and checks if a fruit is detected
+    # Example Call: ps.detect()
 
     def detect(self):
         pose=self.rgb_image_processing()
@@ -184,6 +196,7 @@ class PercepStack():
     # Input: depth_data,rgb_data
     # Output: None 
     # Description: Takes in the incoming rgb and depth data and calls respective functions
+    # Example Call: ps.callback(depth_data,rgb_data)
 
     def callback(self,depth_data, rgb_data) :
 
@@ -207,65 +220,12 @@ class PercepStack():
                 self.handle_turtle_pose(self.XYZ["yellow"][i][0],self.XYZ["yellow"][i][1],self.XYZ["yellow"][i][2] , self.yellow_pepper)
 
 
-    # def transform_pose(self, src):
-    #     try:
-    #         # self.listener.waitForTransform("ebot_base" , "pepper" , rospy.Time() , rospy.Duration(4.0))
-    #         #rospy.loginfo("in the transform function")
-    #         transform = []
-    #         #trans = self.tf_buffer.lookup_transform('ebot_base' , 'fruit_red' , rospy.Time())
-    #         listener = tf.TransformListener()
-    #         listener.waitForTransform("ebot_base", src, rospy.Time(), rospy.Duration(4.0))
-    #         (trans, rot) = listener.lookupTransform('ebot_base', src,rospy.Time())
-
-
-    #         #print("TRANSFORM :" , trans, rot)
-
-    #         return trans, rot
-    #     except:
-    #         return [],[]
-    
-    # def ebot_base_transform(self):
-
-    #     transform_yellow, rot_yellow= self.transform_pose("fruit_yellow_1")
-    #     transform_red, rot_red= self.transform_pose("fruit_red_1")
-
-    #     if len(transform_red)!=0:
-    #         # attempt2 = 0
-    #         t2 = geometry_msgs.msg.TransformStamped()
-    #         t2.header.frame_id = "ebot_base"
-    #         t2.header.stamp = rospy.Time.now()
-    #         t2.child_frame_id = "fruit_red"
-    #         t2.transform.translation.x = round(transform_red[0] ,2 ) 
-    #         t2.transform.translation.y = round(transform_red[1] ,2 ) 
-    #         t2.transform.translation.z = round(transform_red[2] ,2 ) 
-    #         t2.transform.rotation.x = 0
-    #         t2.transform.rotation.y = 0
-    #         t2.transform.rotation.z = 0
-    #         t2.transform.rotation.w = 1            
-    #         tfm2 = tf2_msgs.msg.TFMessage([t2])
-    #         self.pub_tf2.publish(tfm2)
-
-    #     if len(transform_yellow)!=0:
-    #         t3 = geometry_msgs.msg.TransformStamped()
-    #         t3.header.frame_id = "ebot_base"
-    #         t3.header.stamp = rospy.Time.now()
-    #         t3.child_frame_id = "fruit_yellow"
-    #         t3.transform.translation.x = round(transform_yellow[0] ,2 ) 
-    #         t3.transform.translation.y = round(transform_yellow[1] ,2 )
-    #         t3.transform.translation.z = round(transform_yellow[2] ,2 ) 
-    #         t3.transform.rotation.x = 0
-    #         t3.transform.rotation.y = 0
-    #         t3.transform.rotation.z = 0
-    #         t3.transform.rotation.w = 1            
-    #         tfm3 = tf2_msgs.msg.TFMessage([t3])
-    #         self.pub_tf3.publish(tfm3)
-
-
     # Function Name: mask 
     # Input: frame,lower,upper
     # Output: [obj_center,obj_radius] 
     # Description: processes the image using the given hsv values and gives the centers and radii of detected fruits
-
+    # Example Call: ps.mask(frame,lower,upper)
+    
     def mask(self, frame, lower, upper):
     
         obj_radius = []    
@@ -300,6 +260,7 @@ class PercepStack():
     # Input: None
     # Output: Pose 
     # Description: Processes the rgb image to find the yellow and red fruits
+    # Example Call: ps.rgb_image_processing()
 
     def rgb_image_processing(self):
 
@@ -328,6 +289,7 @@ class PercepStack():
     # Input: pose
     # Output: depth array 
     # Description: Processes the depth image using the given pose and finds the depth of the fruits
+    # Example Call: ps.depth_image_processing(pose)
 
     def depth_image_processing(self, pose) :
 
@@ -369,23 +331,6 @@ class PercepStack():
 
         return depth_val
 
-    # def set_joint_angles(self, arg_list_joint_angles):
-
-    #     list_joint_values = self._group1.get_current_joint_values()
-    #     rospy.loginfo('\033[94m' + ">>> Current Joint Values:" + '\033[0m')
-    #     rospy.loginfo(list_joint_values)
-
-    #     self._group1.set_joint_value_target(arg_list_joint_angles)
-    #     self._group1.plan()
-    #     flag_plan = self._group1.go(wait=True)
-
-    #     list_joint_values = self._group1.get_current_joint_values()
-    #     rospy.loginfo('\033[94m' + ">>> Final Joint Values:" + '\033[0m')
-    #     rospy.loginfo(list_joint_values)
-
-    #     pose_values = self._group1.get_current_pose().pose
-    #     rospy.loginfo('\033[94m' + ">>> Final Pose:" + '\033[0m')
-    #     rospy.loginfo(pose_values)   
 
 
 
@@ -393,15 +338,13 @@ class PercepStack():
 # Input: None
 # Output: None 
 # Description: Inits the node and continously calls the detect function
+# Example Call: main()
 
 def main():
     rospy.init_node("pepperfinder", anonymous=True)
     # try:
     ps = PercepStack()
     rospy.sleep(1)
-    inter_pose =  [math.radians(-257),math.radians(-23),math.radians(-60),math.radians(86),math.radians(0),math.radians(-1)]
-    inter_pose_1=  [math.radians(-88),math.radians(-3),math.radians(-37),math.radians(37),math.radians(0),math.radians(-1)]
-
     while True:
         ps.detect()
         
