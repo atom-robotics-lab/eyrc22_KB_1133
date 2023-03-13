@@ -3,7 +3,9 @@
 # Team ID:			[ 1133 ]
 # Author List:		[ Arjun K Haridas, Bhavay Garg , Ayan Goel , Divyansh Sharma ]
 # Filename:			percepStack.py
-# Functions:		[ mask, img_clbk, depth_clbk, image_processing, main ]
+# Theme:            Krishibot 
+# Functions:		[ mask, img_clbk, depth_clbk, image_processing, main , rgb_processing, find_transpose, detect]
+# Global Variables  rgb_shape, depth_shape 
 
 ####################### IMPORT MODULES #######################
 import cv2 
@@ -23,6 +25,12 @@ import math
 
 
 class PercepStack():
+
+    # Function name: init 
+    # input: none 
+    # output: none 
+    # Description: Initialises standard variables and cteates the subscribers and publishers
+
     def __init__(self) -> None:
 
         self.red_mask_lower = (150, 109, 51)
@@ -57,7 +65,12 @@ class PercepStack():
         self.rgb_image, self.depth_image = None, None
         self.rgb_shape, self.depth_shape = None, None
         self.found=False
-        
+    
+    # Function Name: rgb_callback 
+    # Input: rgb_message
+    # Output: None 
+    # Description: Decodes the incoming rgb_message and saves it in rgb_image variable
+
     def rgb_callback(self, rgb_message) :
         try :
             np_arr = np.frombuffer(rgb_message.data, np.uint8)
@@ -71,8 +84,13 @@ class PercepStack():
             print("rgb_callback exception : ", e)
             pass
     
+    # Function Name: depth_callback 
+    # Input: depth_message 
+    # Output: None
+    # Description: Decodes the depth image and saves it to variable depth_image 
+    
     def depth_callback(self, depth_message) :
-        self.depth_image = self.bridge.imgmsg_to_cv2(depth_message, desired_encoding=depth_message.encoding)
+        self.depth_image = snelf.bridge.imgmsg_to_cv2(depth_message, desired_encoding=depth_message.encoding)
         self.depth_shape = self.depth_image.shape 
 
     def handle_turtle_pose(self, x , y, z , pepper ) :
