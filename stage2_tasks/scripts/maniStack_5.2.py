@@ -1,5 +1,18 @@
 #! /usr/bin/env python3
 
+'''
+
+* Team Id:1133
+* Auhtor List: Arjun K Haridas , Divyansh Sharma , Ayan Goel , Bhavay Garg
+* Filename: ManiStack.py
+* Theme: Krishi Bot (KB)
+* Functions:arm_sub_callback, ack_clbck ,set_joint_angles ,set_pose , print_pose_ee_joint , gripper_control , __del__ , transform_pose 
+* Global Variables: arm_rotation , ack_val 
+
+'''
+
+#! /usr/bin/env python3
+
 import rospy
 import tf2_ros
 import tf2_msgs.msg
@@ -51,6 +64,15 @@ class Ur5Moveit:
                                         Empty, queue_size=1)
         rospy.sleep(1)
 
+
+    '''
+    * Function Name: arm_sub_callback
+    * Input: msg value from arm callback
+    * Output: arm rotation value
+    * Logic: when this callback have "Rotate" then the arm rotate to left otherwise to right
+    * Example Call: self.arm_rotation 
+    '''
+
     def arm_sub_callback(self, msg):
         msg = msg.data 
         try :
@@ -61,13 +83,21 @@ class Ur5Moveit:
         except:
             print("No publisher found")
 
+    
+    '''
 
+    * Function Name: ack_clbck
+    * Input: msg value from arm callback
+    * Output: flags 
+    * Logic: publishing the flag value
+
+    '''
     def ack_clbck(self, msg):
         '''
         callback function for flag plan retrun value
         '''
         self.flag_plan = msg.data # storing the data part (expected: Bool)
-
+    
     def pose_joint_clbck(self, msg):
         '''
         callback function for pose ee and joint angles
@@ -89,7 +119,15 @@ class Ur5Moveit:
 
         self.pose_and_joint_angles[0] = self.sample_pose  # Replacing the first element with actual pose format
 
+    '''
 
+    * Function Name: set_joint_angles
+    * Input: joint angle value for the joints
+    * Output: arm rotated to the pose given
+    * Logic: arm rotated if the given poses are valid
+    * Example Call: set_joint_angles(pose)
+
+    '''
     def set_joint_angles(self, arg_list_joint_angles):
         '''
         Setting joint angles
@@ -114,6 +152,16 @@ class Ur5Moveit:
                 '\033[94m' + ">>> set_joint_angles() Failed." + '\033[0m')
 
         return self.flag_plan # returning the flag of plan on std true-false logic
+    
+    '''
+
+    * Function Name: set_pose
+    * Input: pose values after the detection
+    * Output: arm rotated to the pose given
+    * Logic: arm rotated if the given poses are valid
+    * Example Call: set_pose(pose)
+
+    '''    
 
     def set_pose(self, arg_pose):
         '''
@@ -133,7 +181,15 @@ class Ur5Moveit:
                 '\033[94m' + ">>> set_pose() Failed." + '\033[0m')
 
         return self.flag_plan # returning the flag of plan on std true-false logic
+    
+    '''
 
+    * Function Name: print_pose_ee_joint
+    * Input: current joint angles value from the bot of the end effector
+    * Output: printed current joint values
+    * Example Call: print_pose_ee_joint()
+
+    '''
 
     def print_pose_ee_joint(self): # but outputs both pose and joint angles
                              
@@ -178,7 +234,15 @@ class Ur5Moveit:
             self.pose_and_joint_angles = [self.sample_pose, [0,0,0,0,0,0]]  # returning empty values
 
         return self.pose_and_joint_angles
+    '''
 
+    * Function Name: gripper_control
+    * Input: logic value of 1 or 0 
+    * Output: gripper closed or open 
+    * Logic: gripper closed or open according to the logic value
+    * Example Call: gripper_control(0)
+
+    '''   
     def gripper_control(self, logic_level):
         '''
         Controlling gripper to open and close where:
@@ -196,20 +260,25 @@ class Ur5Moveit:
     def __del__(self):
         rospy.loginfo(
             '\033[94m' + "Object of class Ur5Moveit Deleted." + '\033[0m')
+        
+    '''
+
+    * Function Name: transform_pose
+    * Input: Frames from which we have to calculate the trans and rot value
+    * Output: get trans and rot value
+    * Logic: If frame got published then it calculates the trans and rot value between them
+    * Example Call: transform_pose("Red_pepper")
+
+    '''   
 
     def transform_pose(self, src):
         try:
-            # self.listener.waitForTransform("ebot_base" , "pepper" , rospy.Time() , rospy.Duration(4.0))
             rospy.loginfo("in the transform function")
             transform = []
-            #trans = self.tf_buffer.lookup_transform('ebot_base' , 'fruit_red' , rospy.Time())
             listener_1 = tf.TransformListener()
-            rospy.loginfo("first")
-            # listener_1.waitForTransform("ebot_base", src, rospy.Time(), rospy.Duration(0.5))
-            rospy.loginfo("second")
+            rospy.loginfo("Transform is calculating the values")
             (trans, rot) = listener_1.lookupTransform('ebot_base', src,rospy.Time())
-
-            rospy.loginfo("Third")
+            rospy.loginfo("Trans and rot")
             #print("TRANSFORM :" , trans, rot)
             rospy.loginfo(trans)
             return trans, rot
@@ -218,16 +287,16 @@ class Ur5Moveit:
             print("exception in transform_pose : ", str(e))
 
             return [],[]
+'''
 
-    # def handle_turtle_pose(self, x , y, z ) :
-    #     br = tf.TransformBroadcaster()
-    #     br.sendTransform((x , y , z),
-    #                     (0,0,0,1),
-    #                     rospy.Time.now(),
-    #                     "lmaooooo",
-    #                     "ebot_base")
-    #     print(x ,y ,z )                
-    #     print("Transform broadcast")
+* Function Name: main
+* Input: None
+* Output: None
+* Logic: Here , arm rotate intially to the right then left after 2 turns . During which arm goes to the peppers inter and final pose then to 
+        basket .
+* Example Call: called automatically by operating system
+
+'''   
 
 def main():
 
@@ -256,6 +325,7 @@ def main():
         red_drop_1 = [math.radians(-49),math.radians(-123),math.radians(153),math.radians(-22),math.radians(65),math.radians(-94)]
         yellow_drop_1 = [math.radians(-1),math.radians(-123),math.radians(153),math.radians(-22),math.radians(65),math.radians(-94)]
 
+        # arm rotates to the left pose
         if ms.arm_rotation == 1:
             print("in the left inter pose")
             pose = left_inter_pose
@@ -263,10 +333,8 @@ def main():
             offset_pose = 0.33
             orientation_w = 0.5
             orientation_z = 0.5
-            # pose_x = 0.0004508026344099538
-            # pose_y = -0.7052359925739942
-            # pose_z = 0
-            # pose_w = 0.008059155505845033
+
+        # arm rotates to the right pose
         else :
             print("in the right inter_pose")
             pose = right_inter_pose
@@ -274,45 +342,30 @@ def main():
             offset_pose = - 0.262
             orientation_w = -0.5
             orientation_z = -0.5
-            # pose_x = -0.006533642089305424z
-            # pose_y = 0.7477652292772122
-            # pose_z = -1
-            # pose_w = 0.6639039569546898
+
         rospy.loginfo("in the print state")
         ms.print_pose_ee_joint()
         rospy.loginfo("set joint function")
         ms.set_joint_angles(pose)
         rospy.loginfo("in the gripper pose")
-        # rospy.loginfo("At the left pose")
         ms.gripper_control(0)
 
         # rospy.sleep(2)
 
         while True:
 
+            # calling the transform pose function to get peppers trans value
 
             transform_yellow, rot_yellow=ms.transform_pose("Yellow_pepper")
             transform_red, rot_red=ms.transform_pose("Red_pepper")
             ms.print_pose_ee_joint()
 
-            # red_pose_interpose = geometry_msgs.msg.Pose()
-            # # red_pose_interpose.orientation.x =  0
-            # red_pose_interpose.orientation.y = 1
-            # # red_pose_interpose.orientation.z = 1.1528102031688827
-
-            # while not flag :
-            #     rospy.loginfo("into the red function")
-
-            #     flag = ms.set_pose(red_pose_interpose)
-
-            #     rospy.loginfo("outside of the red pose")
-
+            # Trying to capture the red pepper
             if len(transform_red)!=0:
 
                 rospy.loginfo("Into the red pepper")
                 ms.pluck_pub.publish("Stop")
 
-                # ms.handle_turtle_pose(transform_red[0] , transform_red[1] , transform_red[2])
                 
                 attempt2 = 0
 
@@ -335,13 +388,17 @@ def main():
                 red_pose.orientation.z = orientation_z
                 red_pose.orientation.w = orientation_w
 
-
+                
                 while not flag2 and attempt2 < 11 :
+                    
+                    #Attempting the red interpose
 
                     rospy.loginfo("going to the red pose ")
                     if attempt2 < 6 or not second_pose :
                         second_pose = ms.set_pose(red_pose_interpose)
                         attempt2 += 1
+                    
+                    #Attempting the red final pose
 
                     if attempt2 >= 6 and attempt2 < 11 :
                         rospy.loginfo("going close to the pose")
@@ -360,7 +417,7 @@ def main():
                 if flag2 :
                     print("fruit_red Dropped in red_box")
 
-            
+            # Trying to capture the red pepper
             if len(transform_yellow)!=0:
 
                 rospy.loginfo("Into yellow pepper")
@@ -370,7 +427,6 @@ def main():
                 yellow_pose.position.x = round(transform_yellow[0] ,2 ) - 0.1
                 yellow_pose.position.y = round(transform_yellow[1] ,2 ) - offset_interpose
                 yellow_pose.position.z = round(transform_yellow[2] ,2 ) 
-                # yellow_pose.orientation.z = pose_z
 
 
                 yellow_pose.orientation.x = -0.5
@@ -382,7 +438,6 @@ def main():
                 yellow_inter_pose.position.x = round(transform_yellow[0] ,2 ) - 0.1
                 yellow_inter_pose.position.y = round(transform_yellow[1] ,2 ) - offset_pose
                 yellow_inter_pose.position.z = round(transform_yellow[2] ,2 ) 
-                # yellow_inter_pose.orientation.z = pose_z
 
                 yellow_inter_pose.orientation.x = -0.5
                 yellow_inter_pose.orientation.y = 0.5
@@ -394,10 +449,13 @@ def main():
 
                 while not flag1 and attempt < 11 :
 
+                    #Attempting the yellow inter_pose
                     if attempt < 6:
                         first_pose = ms.set_pose(yellow_inter_pose)
                         attempt += 1
                         rospy.loginfo("yellow inter pose")
+
+                    #Attempting the yellow final_pose
                     if attempt >= 6 and  attempt < 11:
                         flag1 = ms.set_pose(yellow_pose)
                         attempt += 1
@@ -427,5 +485,4 @@ def main():
 if __name__=="__main__" :
     main()
     rospy.spin()
-
 
