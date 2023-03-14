@@ -1,5 +1,17 @@
 #! /usr/bin/env python3
 
+'''
+*****************************************************************************************
+*
+*        		===============================================
+*           		Krishi Bot (KB) Theme (eYRC 2022-23)
+*        		===============================================
+*
+*  This script is to implement of Krishi Bot (KB) Theme (eYRC 2022-23).
+*  
+*****************************************************************************************
+'''
+
 # Team ID:			[ 1133 ]
 # Author List:		[ Arjun K Haridas, Bhavay Garg , Ayan Goel , Divyansh Sharma ]
 # Filename:			percepStack.py
@@ -94,7 +106,7 @@ class PercepStack():
     # Example Call: ps.depth_callback(depth_message)
     
     def depth_callback(self, depth_message) :
-        self.depth_image = snelf.bridge.imgmsg_to_cv2(depth_message, desired_encoding=depth_message.encoding)
+        self.depth_image = self.bridge.imgmsg_to_cv2(depth_message, desired_encoding=depth_message.encoding)
         self.depth_shape = self.depth_image.shape 
 
 
