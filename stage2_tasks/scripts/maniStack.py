@@ -1,17 +1,13 @@
 #! /usr/bin/env python3
 
 '''
-
 * Team Id:1133
 * Auhtor List: Arjun K Haridas , Divyansh Sharma , Ayan Goel , Bhavay Garg
 * Filename: ManiStack.py
 * Theme: Krishi Bot (KB)
 * Functions:arm_sub_callback, ack_clbck ,set_joint_angles ,set_pose , print_pose_ee_joint , gripper_control , __del__ , transform_pose 
 * Global Variables: arm_rotation , ack_val 
-
 '''
-
-#! /usr/bin/env python3
 
 import rospy
 import tf2_ros
